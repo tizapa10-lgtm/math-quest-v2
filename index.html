@@ -3,201 +3,122 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Math Quest: V3 Ultra</title>
+    <title>Multi-Quest 6to Grado</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
         :root { --bg: #0f172a; --panel: #1e293b; --gold: #facc15; }
         body { font-family: 'Press Start 2P', cursive; background-color: var(--bg); color: #fff; text-align: center; }
         .pixel-border { border: 4px solid #fff; box-shadow: 0 0 0 4px #000, 0 0 0 8px #fff; background-color: var(--panel); margin-bottom: 20px; }
-        .btn-answer { background: #334155; border: 4px solid #000; box-shadow: inset -4px -4px 0 #1e293b, inset 4px 4px 0 #475569; font-size: 9px; padding: 18px; width: 100%; text-align: left; margin-bottom: 12px; color: white; }
-        .btn-answer:active { transform: translateY(2px); }
+        .btn-choice { background: #334155; border: 4px solid #000; box-shadow: inset -4px -4px 0 #1e293b, inset 4px 4px 0 #475569; font-size: 10px; padding: 20px; width: 100%; margin-bottom: 12px; color: white; cursor: pointer; }
+        .btn-answer { background: #1e293b; border: 4px solid #fff; font-size: 9px; padding: 15px; width: 100%; margin-bottom: 10px; color: white; text-align: left; }
         #modal { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 100; display: none; align-items: center; justify-content: center; padding: 20px; }
+        .hidden { display: none !important; }
     </style>
 </head>
 <body class="p-4 flex flex-col items-center">
 
-    <div class="w-full max-w-md grid grid-cols-3 gap-2 mb-6 text-[10px]">
-        <div class="p-2 border-4 border-gray-700 bg-black">✅ <span id="h">0</span></div>
-        <div class="p-2 border-4 border-gray-700 bg-black">❌ <span id="m">0</span></div>
-        <div class="p-2 border-4 border-yellow-700 bg-black text-yellow-400">⭐ <span id="g">0.0</span></div>
+    <div id="menu-screen" class="w-full max-w-md">
+        <div class="pixel-border p-6 mt-10">
+            <h1 class="text-yellow-400 text-sm mb-8">ELIGE TU MISIÓN</h1>
+            <button onclick="startSubject('matematicas')" class="btn-choice" style="border-color: #22d3ee;">🧮 MATEMÁTICAS</button>
+            <button onclick="startSubject('espanol')" class="btn-choice" style="border-color: #f472b6;">📖 ESPAÑOL</button>
+            <button onclick="startSubject('historia')" class="btn-choice" style="border-color: #fb923c;">⚔️ HISTORIA</button>
+            <button onclick="startSubject('geografia')" class="btn-choice" style="border-color: #4ade80;">🌍 GEOGRAFÍA</button>
+        </div>
     </div>
 
-    <div class="w-full max-w-md p-4 pixel-border">
-        <div class="text-cyan-400 text-[10px]">PISO <span id="floor-num">1</span></div>
-        <div class="text-[40px] my-4">👾</div>
-        <div id="question" class="text-[9px] text-green-300 leading-relaxed px-2"></div>
+    <div id="game-screen" class="w-full max-w-md hidden">
+        <div class="flex justify-between mb-4 text-[8px]">
+            <button onclick="location.reload()" class="text-gray-400">⬅️ VOLVER</button>
+            <span id="subject-name" class="text-yellow-400"></span>
+        </div>
+        
+        <div class="grid grid-cols-2 gap-2 mb-6 text-[8px]">
+            <div class="p-2 border-4 border-gray-700 bg-black">✅ <span id="h">0</span></div>
+            <div class="p-2 border-4 border-gray-700 bg-black text-yellow-400">PISO <span id="floor-num">1</span></div>
+        </div>
+
+        <div class="p-4 pixel-border">
+            <div id="question" class="text-[9px] text-green-300 leading-relaxed"></div>
+        </div>
+
+        <div id="options"></div>
     </div>
-
-    <div id="options" class="w-full max-w-md"></div>
-
-    <button onclick="localStorage.clear(); location.reload();" class="mt-10 text-[7px] text-gray-600 underline">REINICIAR TODO</button>
 
     <div id="modal">
         <div class="pixel-border p-8 w-full max-w-xs" style="border-color: var(--gold)">
             <div id="m-icon" class="text-5xl mb-4"></div>
             <div id="m-title" class="text-sm mb-4"></div>
             <div id="m-desc" class="text-[8px] text-gray-400 mb-8 leading-loose"></div>
-            <button onclick="location.reload()" class="btn-answer text-center" style="background:#fff; color:#000; text-align:center">CONTINUAR</button>
+            <button onclick="closeModal()" class="btn-choice" style="background:#fff; color:#000;">CONTINUAR</button>
         </div>
     </div>
 
     <script>
-        // PEGA AQUÍ TUS PREGUNTAS (HE PUESTO 5 DE EJEMPLO)
-       const questions = [
-    // --- BLOQUE 1: ARITMÉTICA Y OPERACIONES (PISOS 1-30) ---
-    { q: "Si 3 cuadernos cuestan $45, ¿cuánto pagarás por 12?", a: ["$135", "$180", "$150", "$200"], c: 1, p: "12 es el cuádruple de 3 (45 x 4)." },
-    { q: "Resultado de (10 + 5) * 2 - 10:", a: ["20", "15", "25", "30"], c: 0, p: "Primero el paréntesis (15), luego x2 (30) y resta 10." },
-    { q: "¿Qué número sigue: 2, 6, 18, 54, __?", a: ["108", "162", "150", "200"], c: 1, p: "Cada número se multiplica por 3." },
-    { q: "Si X + 15 = 40, ¿cuánto vale X?", a: ["20", "30", "25", "35"], c: 2, p: "Resta 40 - 15." },
-    { q: "Un pantalón de $500 tiene 20% de descuento. ¿Cuánto cuesta?", a: ["$400", "$450", "$100", "$380"], c: 0, p: "El 20% son $100. Resta 500 - 100." },
-    { q: "¿Cuál es el resultado de 1/2 + 1/4?", a: ["2/6", "3/4", "1/4", "1/2"], c: 1, p: "1/2 es lo mismo que 2/4. Suma 2/4 + 1/4." },
-    { q: "¿Cuántos minutos hay en 3 horas y media?", a: ["180 min", "200 min", "210 min", "240 min"], c: 2, p: "60 x 3 = 180. Suma 30 más." },
-    { q: "Si multiplicas un número por 0, el resultado es siempre:", a: ["El mismo número", "1", "0", "Infinito"], c: 2, p: "Regla de oro: todo por cero es cero." },
-    { q: "¿Cuál es la raíz cuadrada de 64?", a: ["6", "7", "8", "9"], c: 2, p: "8 x 8 = 64." },
-    { q: "Si 5 entradas al cine cuestan $400, ¿cuánto cuesta 1?", a: ["$70", "$80", "$90", "$75"], c: 1, p: "Divide 400 entre 5." },
-    { q: "Resultado de 2 + 3 * 4:", a: ["20", "14", "11", "12"], c: 1, p: "Jerarquía: Primero la multiplicación (12) y luego suma 2." },
-    { q: "¿Cuántos segundos hay en 2 minutos?", a: ["100", "120", "150", "60"], c: 1, p: "60 + 60." },
-    { q: "Si tienes -5 pesos y te dan 10, ¿cuánto tienes?", a: ["-15", "15", "5", "0"], c: 2, p: "10 positivo menos 5 que debías." },
-    { q: "¿Cuál es el sucesor de -1?", a: ["-2", "0", "1", "-0.5"], c: 1, p: "A la derecha del -1 en la recta está el 0." },
-    { q: "Un coche recorre 150 km en 2 horas. ¿A qué velocidad va?", a: ["60 km/h", "75 km/h", "80 km/h", "70 km/h"], c: 1, p: "Divide distancia entre tiempo (150/2)." },
-    { q: "Si 1/3 de un número es 9, ¿cuál es el número?", a: ["3", "18", "27", "21"], c: 2, p: "9 x 3 = 27." },
-    { q: "¿Cuál es el valor de 5 al cuadrado (5²)?", a: ["10", "25", "50", "15"], c: 1, p: "5 x 5 = 25." },
-    { q: "Suma de 0.25 + 0.50:", a: ["0.30", "0.75", "1.00", "0.80"], c: 1, p: "Como sumar monedas de 25 y 50 centavos." },
-    { q: "¿Cuál es el triple de 20 menos 10?", a: ["50", "30", "60", "40"], c: 0, p: "Triple de 20 es 60. Resta 10." },
-    { q: "Si repartes 100 dulces entre 4 niños, ¿cuántos le tocan a cada uno?", a: ["20", "25", "30", "15"], c: 1, p: "La cuarta parte de 100." },
+        const database = {
+            matematicas: [
+                { q: "¿Cuál es el resultado de 3/4 + 1/8?", a: ["4/12", "7/8", "1/2", "5/8"], c: 1, p: "Convierte 3/4 a 6/8 y suma." },
+                { q: "Si un círculo tiene 10cm de diámetro, ¿su radio es?", a: ["20cm", "5cm", "10cm", "2.5cm"], c: 1, p: "El radio es la mitad del diámetro." },
+                { q: "Resultado de: 5 + 5 x 5", a: ["50", "25", "30", "15"], c: 2, p: "Primero multiplica (5x5=25) y suma 5." }
+            ],
+            espanol: [
+                { q: "¿Qué tipo de palabra es 'correr'?", a: ["Sustantivo", "Adjetivo", "Verbo", "Adverbio"], c: 2, p: "Indica una acción." },
+                { q: "Parte del cuento donde se resuelve el conflicto:", a: ["Inicio", "Desarrollo", "Desenlace", "Título"], c: 2, p: "Es el final de la historia." },
+                { q: "Palabra que tiene la sílaba tónica en la última sílaba:", a: ["Aguda", "Grave", "Esdrújula", "Sobresdrújula"], c: 0, p: "Ejemplo: Melón, Correr, Sofá." }
+            ],
+            historia: [
+                { q: "Civilización que construyó las pirámides del Sol y la Luna:", a: ["Maya", "Mexica", "Teotihuacana", "Olmeca"], c: 2, p: "Se ubicaron en el Estado de México." },
+                { q: "Periodo que inició con la agricultura y el sedentarismo:", a: ["Paleolítico", "Neolítico", "Edad de Oro", "Virreinato"], c: 1, p: "Neo significa nuevo (piedra nueva)." },
+                { q: "¿En qué año se descubrió América?", a: ["1521", "1810", "1492", "1910"], c: 2, p: "Siglo XV, viaje de Cristóbal Colón." }
+            ],
+            geografia: [
+                { q: "Capa de la Tierra donde vivimos:", a: ["Núcleo", "Manto", "Corteza", "Atmósfera"], c: 2, p: "Es la capa más externa y sólida." },
+                { q: "Continente con mayor número de habitantes:", a: ["América", "África", "Asia", "Europa"], c: 2, p: "Países como China e India están ahí." },
+                { q: "Línea imaginaria que divide la Tierra en Norte y Sur:", a: ["Meridiano", "Ecuador", "Trópico", "Polo"], c: 1, p: "Es el cinturón de la Tierra." }
+            ]
+        };
 
-    // --- BLOQUE 2: GEOMETRÍA Y MEDIDAS (PISOS 21-50) ---
-    { q: "¿Cuántos grados mide un ángulo recto?", a: ["45°", "90°", "180°", "360°"], c: 1, p: "Es el ángulo en forma de 'L'." },
-    { q: "Área de un cuadrado de 6cm de lado:", a: ["12cm²", "24cm²", "36cm²", "30cm²"], c: 2, p: "Lado x Lado (6x6)." },
-    { q: "Un triángulo con todos sus lados iguales se llama:", a: ["Isósceles", "Escaleno", "Equilátero", "Rectángulo"], c: 2, p: "Equi = igual. Látero = lado." },
-    { q: "Perímetro de un hexágono regular de 4cm por lado:", a: ["24cm", "20cm", "12cm", "30cm"], c: 0, p: "6 lados x 4cm." },
-    { q: "¿Cuántos lados tiene un decágono?", a: ["8", "10", "12", "15"], c: 1, p: "Deca viene de diez." },
-    { q: "Si el radio de un círculo es 5, ¿cuánto mide el diámetro?", a: ["2.5", "5", "10", "15"], c: 2, p: "El diámetro es el doble del radio." },
-    { q: "¿Cuántos milímetros hay en 1 metro?", a: ["100", "1,000", "10,000", "10"], c: 1, p: "Mili = mil." },
-    { q: "Un ángulo que mide 180° se llama:", a: ["Agudo", "Obtuso", "Llano", "Recto"], c: 2, p: "Es una línea recta." },
-    { q: "¿Cuál es el volumen de un cubo de 2cm de lado?", a: ["4cm³", "8cm³", "12cm³", "6cm³"], c: 1, p: "Lado x Lado x Lado (2x2x2)." },
-    { q: "¿Cuántas caras tiene un dado común (cubo)?", a: ["4", "6", "8", "12"], c: 1, p: "Piensa en los números del 1 al 6." },
-    { q: "El punto donde se unen dos líneas de un ángulo se llama:", a: ["Lado", "Arista", "Vértice", "Base"], c: 2, p: "Es la 'esquina' del ángulo." },
-    { q: "¿Cuántos gramos hay en 2.5 kilogramos?", a: ["250g", "2,500g", "25,000g", "2,000g"], c: 1, p: "1kg = 1000g. Multiplica por 2.5." },
-    { q: "Área de un triángulo de base 8 y altura 5:", a: ["40", "20", "13", "10"], c: 1, p: "(Base x Altura) / 2." },
-    { q: "Si un reloj marca las 6:00, ¿qué ángulo forman las manecillas?", a: ["90°", "180°", "360°", "45°"], c: 1, p: "Una apunta arriba y otra abajo en línea recta." },
-    { q: "¿Cómo se llama el polígono de 5 lados?", a: ["Hexágono", "Octágono", "Pentágono", "Heptágono"], c: 2, p: "Penta = cinco." },
-    { q: "Perímetro de un círculo se calcula con:", a: ["Lado x 4", "Pi x Diámetro", "Base x Altura", "Radio x 2"], c: 1, p: "Fórmula de la circunferencia." },
-    { q: "¿Cuántas aristas tiene un cubo?", a: ["6", "8", "12", "10"], c: 2, p: "Son todos los 'filos' o líneas del cubo." },
-    { q: "Si caminas 1km, ¿cuántos metros recorriste?", a: ["100m", "500m", "1,000m", "10,000m"], c: 2, p: "Kilo = mil." },
-    { q: "Un ángulo de 45° es un ángulo...", a: ["Recto", "Obtuso", "Agudo", "Llano"], c: 2, p: "Es menor a 90°." },
-    { q: "Suma de los ángulos internos de cualquier triángulo:", a: ["90°", "180°", "360°", "270°"], c: 1, p: "Regla universal de la geometría." },
+        let currentSubject = '';
+        let f = 0;
+        let hits = 0;
 
-    // --- BLOQUE 3: LÓGICA Y RAZONAMIENTO (PISOS 51-100) ---
-    { q: "Si un tren eléctrico va al Norte, ¿hacia dónde sale el humo?", a: ["Sur", "Norte", "Ningún lado", "Este"], c: 2, p: "¡Es un tren eléctrico!" },
-    { q: "¿Qué pesa más: 1kg de hierro o 1kg de plumas?", a: ["Hierro", "Plumas", "Pesan lo mismo", "Depende"], c: 2, p: "Ambos son 1 kilogramo." },
-    { q: "Tengo 3 manzanas y me quitas 2, ¿cuántas manzanas tienes?", a: ["1", "2", "3", "0"], c: 1, p: "Lee bien: ¿cuántas tienes TÚ que me las quitaste?" },
-    { q: "Si el papá de Mike tiene 4 hijos: Pepe, Popo, Pupu y...", a: ["Papa", "Pipi", "Mike", "Pupo"], c: 2, p: "El nombre está al principio de la pregunta." },
-    { q: "Un caracol sube 3m de día y resbala 2m de noche. El pozo mide 10m. ¿En qué día sale?", a: ["10", "8", "7", "9"], c: 1, p: "Ojo: el día que llega al borde ya no resbala." },
-    { q: "Si hoy es martes, ¿qué día será dentro de 8 días?", a: ["Martes", "Miércoles", "Jueves", "Lunes"], c: 1, p: "7 días es martes otra vez, +1 es miércoles." },
-    { q: "¿Cuántos meses tienen 28 días?", a: ["1", "6", "12", "0"], c: 2, p: "¡Todos los meses tienen al menos 28 días!" },
-    { q: "Un granjero tiene 10 ovejas y mueren todas menos 3. ¿Cuántas quedan?", a: ["7", "10", "3", "0"], c: 2, p: "Quedan las que no murieron." },
-    { q: "Si una pizza tiene 8 rebanadas y te comes 1/4, ¿cuántas quedan?", a: ["4", "6", "2", "7"], c: 1, p: "1/4 de 8 es 2. Resta 8 - 2." },
-    { q: "En una carrera adelantas al que va en SEGUNDO lugar. ¿En qué lugar estás?", a: ["Primero", "Segundo", "Tercero", "Cuarto"], c: 1, p: "Ocupas el lugar del que acabas de rebasar." },
-    { q: "¿Cuál es el número que sigue: 1, 1, 2, 3, 5, 8, __?", a: ["10", "12", "13", "15"], c: 2, p: "Suma los dos anteriores (Serie Fibonacci)." },
-    { q: "Si 3 camisas se secan en 3 horas, ¿cuánto tardan 6 camisas?", a: ["6 horas", "3 horas", "1.5 horas", "9 horas"], c: 1, p: "Se secan al mismo tiempo bajo el sol." },
-    { q: "¿Qué tiene manos pero no puede aplaudir?", a: ["Un mono", "Un reloj", "Un guante", "Una estatua"], c: 1, p: "Las manecillas del reloj." },
-    { q: "Si un ladrillo pesa 1kg más medio ladrillo, ¿cuánto pesa el ladrillo?", a: ["1.5kg", "2kg", "3kg", "1kg"], c: 1, p: "Si la mitad pesa 1kg, el total es el doble." },
-    { q: "¿Cuántas veces puedes restar 1 al número 10?", a: ["10 veces", "1 vez", "Infinitas", "0"], c: 1, p: "Después de la primera vez, ya no restas a '10'." },
-    { q: "Si hay 3 manzanas y quitas 2, ¿cuántas te quedan?", a: ["1", "2", "3", "0"], c: 1, p: "Las que tú quitaste son las que te quedan." },
-    { q: "El hermano de mi tía no es mi tío. ¿Quién es?", a: ["Mi primo", "Mi abuelo", "Mi padre", "Mi hermano"], c: 2, p: "Piensa en tu familia cercana." },
-    { q: "¿Qué número falta: 100, 90, 80, __, 60?", a: ["75", "70", "65", "50"], c: 1, p: "Resta 10 cada vez." },
-    { q: "Un ángulo obtuso es mayor a:", a: ["45°", "180°", "90°", "360°"], c: 2, p: "Es más abierto que el recto." },
-    { q: "Si 1 kilo de tortillas cuesta $22, ¿cuánto cuestan 5 kilos?", a: ["$100", "$110", "$120", "$105"], c: 1, p: "22 x 5." },
+        function startSubject(subject) {
+            currentSubject = subject;
+            f = 0;
+            hits = 0;
+            document.getElementById('menu-screen').classList.add('hidden');
+            document.getElementById('game-screen').classList.remove('hidden');
+            document.getElementById('subject-name').innerText = subject.toUpperCase();
+            render();
+        }
 
-    // --- BLOQUE 4: REFUERZO MATEMÁTICO (PISOS 101-150) ---
-    { q: "¿Cuál es el 10% de 500?", a: ["5", "50", "10", "100"], c: 1, p: "Divide entre 10." },
-    { q: "Si X * 4 = 36, ¿cuánto vale X?", a: ["8", "7", "9", "6"], c: 2, p: "Busca qué número por 4 da 36." },
-    { q: "Resultado de 0.5 * 100:", a: ["5", "50", "500", "0.50"], c: 1, p: "Recorre el punto dos lugares." },
-    { q: "Un triángulo con dos lados iguales y uno diferente:", a: ["Equilátero", "Isósceles", "Escaleno", "Recto"], c: 1, p: "Iso = igual (dos iguales)." },
-    { q: "¿Cuál es el doble de 0.75?", a: ["1.25", "1.50", "1.75", "2.00"], c: 1, p: "0.75 + 0.75." },
-    { q: "¿Cuántos mililitros hay en medio litro?", a: ["50", "250", "500", "750"], c: 2, p: "La mitad de 1000." },
-    { q: "Si compras un juguete de $145 y pagas con $200, ¿cambio?", a: ["$55", "$65", "$45", "$75"], c: 0, p: "200 - 145." },
-    { q: "¿Qué fracción es equivalente a 2/4?", a: ["1/3", "1/2", "3/4", "1/4"], c: 1, p: "Simplifica la fracción." },
-    { q: "En el número 5,678, ¿qué cifra son las centenas?", a: ["5", "6", "7", "8"], c: 1, p: "Unidad, decena, centena..." },
-    { q: "Suma de 1/8 + 1/8:", a: ["2/16", "1/4", "1/16", "1/2"], c: 1, p: "2/8 simplificado es 1/4." },
-    { q: "¿Cuántos vértices tiene un triángulo?", a: ["1", "2", "3", "4"], c: 2, p: "Cuenta las esquinas." },
-    { q: "Si un número termina en 0 o 5, es divisible entre:", a: ["2", "3", "5", "10"], c: 2, p: "Regla del 5." },
-    { q: "Resultado de -10 + 4:", a: ["-14", "-6", "6", "14"], c: 1, p: "Debes 10 y pagas 4." },
-    { q: "¿Cuál es el valor absoluto de -20?", a: ["-20", "0", "20", "1"], c: 2, p: "La distancia al cero (siempre positiva)." },
-    { q: "Un siglo tiene...", a: ["10 años", "50 años", "100 años", "1,000 años"], c: 2, p: "Cien años." },
-    { q: "¿Cuántas bases tiene un cilindro?", a: ["1", "2", "3", "0"], c: 1, p: "La tapa de arriba y la de abajo." },
-    { q: "Si 0.1 * X = 5, ¿cuánto vale X?", a: ["0.5", "5", "50", "500"], c: 2, p: "Divide 5 entre 0.1." },
-    { q: "El triple de un número es 30. ¿Cuál es el número?", a: ["3", "10", "15", "20"], c: 1, p: "Divide 30 / 3." },
-    { q: "¿Cuál es el número romano para 50?", a: ["X", "L", "C", "D"], c: 1, p: "L = 50." },
-    { q: "Si caminas 500m al Norte y 200m al Sur, ¿a cuánto estás del inicio?", a: ["700m", "300m", "500m", "0m"], c: 1, p: "Resta las distancias." },
-    { q: "Un decímetro tiene...", a: ["1cm", "10cm", "100cm", "0.1cm"], c: 1, p: "Deci = diez." },
-    { q: "Resultado de 100 / 0.5:", a: ["50", "200", "250", "150"], c: 1, p: "Dividir entre 0.5 es duplicar." },
-    { q: "¿Cómo se llama el polígono de 7 lados?", a: ["Hexágono", "Heptágono", "Octágono", "Nonágono"], c: 1, p: "Hepta = siete." },
-    { q: "Si lanzas una moneda, ¿probabilidad de cara?", a: ["1/4", "1/2", "1/3", "100%"], c: 1, p: "Una opción de dos." },
-    { q: "¿Cuál es el 50% de 150?", a: ["50", "100", "75", "25"], c: 2, p: "La mitad exacta." },
-    { q: "Si X - 8 = -2, ¿X vale?", a: ["10", "6", "-10", "0"], c: 1, p: "6 - 8 = -2." },
-    { q: "Suma de los lados de un polígono se llama:", a: ["Área", "Volumen", "Perímetro", "Radio"], c: 2, p: "El contorno." },
-    { q: "¿Cuántas horas tiene una semana?", a: ["168", "120", "144", "150"], c: 0, p: "24 x 7." },
-    { q: "Si un ángulo mide 360°, es un ángulo...", a: ["Llano", "Completo", "Recto", "Nulo"], c: 1, p: "La vuelta entera." },
-    { q: "Resultado de 7 * 8:", a: ["49", "56", "64", "54"], c: 1, p: "Tablas de multiplicar." },
-    { q: "¿Cuál es el opuesto de 15?", a: ["0", "1/15", "-15", "1"], c: 2, p: "Mismo número, signo contrario." },
-    { q: "¿Cuántos milímetros son 5 centímetros?", a: ["0.5", "50", "500", "5"], c: 1, p: "5 x 10." },
-    { q: "Si una bolsa trae 12 dulces, ¿cuántos traen 10 bolsas?", a: ["100", "110", "120", "150"], c: 2, p: "12 x 10." },
-    { q: "¿Cómo se llama el ángulo de 270°?", a: ["Cóncavo", "Obtuso", "Agudo", "Recto"], c: 0, p: "Más de 180° pero menos de 360°." },
-    { q: "Si un número es par, es divisible entre:", a: ["3", "2", "5", "7"], c: 1, p: "Regla básica del 2." },
-    { q: "¿Cuál es la mitad de 1/2?", a: ["1", "1/4", "1/3", "2/4"], c: 1, p: "Divide una mitad en dos." },
-    { q: "Suma de 9 + 9 + 9 + 9 es igual a:", a: ["9 x 3", "9 x 4", "9 x 5", "36 x 2"], c: 1, p: "Definición de multiplicación." },
-    { q: "¿Cuántos grados faltan a 45° para ser un ángulo recto?", a: ["45°", "55°", "35°", "90°"], c: 0, p: "90 - 45." },
-    { q: "Si el área de un cuadrado es 25, ¿su lado mide?", a: ["5", "10", "25", "4"], c: 0, p: "Raíz de 25." },
-    { q: "Un año bisiesto tiene...", a: ["364 días", "365 días", "366 días", "360 días"], c: 2, p: "Un día extra en febrero." },
-    { q: "¿Cuál es el valor de Pi aproximado?", a: ["3.16", "3.14", "3.00", "3.10"], c: 1, p: "3.1416..." },
-    { q: "¿Cuántas unidades hay en 5 decenas?", a: ["5", "50", "500", "0.5"], c: 1, p: "5 x 10." },
-    { q: "Si repartes $50 entre 2 personas, ¿cuánto les toca?", a: ["$20", "$25", "$30", "$15"], c: 1, p: "La mitad de 50." },
-    { q: "Resultado de 12 * 12:", a: ["124", "144", "132", "140"], c: 1, p: "Doce al cuadrado." },
-    { q: "¿Qué es mayor: 0.1 o 0.09?", a: ["0.1", "0.09", "Iguales", "Ninguno"], c: 0, p: "0.1 es 0.10." },
-    { q: "Si un triángulo tiene un ángulo de 90°, es un:", a: ["Acutángulo", "Obtusángulo", "Rectángulo", "Isósceles"], c: 2, p: "Tiene un ángulo recto." },
-    { q: "¿Cuántos minutos son 1/4 de hora?", a: ["10 min", "15 min", "20 min", "30 min"], c: 1, p: "60 / 4." },
-    { q: "Si una docena son 12, ¿cuánto es una decena?", a: ["10", "12", "11", "20"], c: 0, p: "Decena viene de diez." },
-    { q: "¿Cuál es el resultado de 1000 - 1?", a: ["900", "990", "999", "1001"], c: 2, p: "Resta uno al millar." },
-    { q: "¡FELICIDADES! Mike, ¿estás listo para la secundaria?", a: ["¡SÍ!", "¡POR SUPUESTO!", "¡DAME MÁS!", "¡YA SOY UN PRO!"], c: 0, p: "¡Has completado los 150 niveles!" }
-];
-
-        // CARGAR DATOS
-        let f = parseInt(localStorage.getItem('floor')) || 0;
-        let hits = parseInt(localStorage.getItem('hits')) || 0;
-        let miss = parseInt(localStorage.getItem('miss')) || 0;
-
-        // DIBUJAR PANTALLA
-        function init() {
+        function render() {
+            const questions = database[currentSubject];
             if (f >= questions.length) {
-                document.body.innerHTML = "<div class='mt-20 text-yellow-400'>🏆 ¡VICTORIA TOTAL!<br><br><button onclick='localStorage.clear(); location.reload();' class='btn-answer text-center'>REPETIR</button></div>";
+                showM("🏆", "¡MISIÓN CUMPLIDA!", "Completaste " + currentSubject);
+                window.shouldReset = true;
                 return;
             }
 
             document.getElementById('floor-num').innerText = f + 1;
             document.getElementById('h').innerText = hits;
-            document.getElementById('m').innerText = miss;
-            const total = hits + miss;
-            document.getElementById('g').innerText = total > 0 ? ((hits/total)*10).toFixed(1) : "0.0";
 
             const qData = questions[f];
             document.getElementById('question').innerText = qData.q;
             
             const grid = document.getElementById('options');
+            grid.innerHTML = '';
             qData.a.forEach((txt, i) => {
                 const b = document.createElement('button');
                 b.className = "btn-answer";
                 b.innerText = txt;
                 b.onclick = () => {
                     if (i === qData.c) {
-                        localStorage.setItem('hits', hits + 1);
-                        localStorage.setItem('floor', f + 1);
-                        showM("⚔️", "¡BIEN!", "Derrotaste al monstruo.");
+                        hits++; f++;
+                        showM("⚔️", "¡CORRECTO!", "¡Buen trabajo!");
                     } else {
-                        localStorage.setItem('miss', miss + 1);
-                        showM("💀", "¡OUCH!", "PISTA: " + qData.p);
+                        showM("💀", "ERROR", "PISTA: " + qData.p);
                     }
                 };
                 grid.appendChild(b);
@@ -211,7 +132,15 @@
             document.getElementById('modal').style.display = 'flex';
         }
 
-        init();
+        function closeModal() {
+            document.getElementById('modal').style.display = 'none';
+            if (window.shouldReset) {
+                window.shouldReset = false;
+                location.reload();
+            } else {
+                render();
+            }
+        }
     </script>
 </body>
 </html>
