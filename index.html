@@ -34,6 +34,7 @@
         }
 
         .btn-choice:active { transform: scale(0.95); }
+        .btn-choice.small { font-size: 8px; padding: 12px; width: auto; }
 
         .btn-answer { 
             background: rgba(30, 41, 59, 0.8); 
@@ -52,7 +53,7 @@
             to { opacity: 1; transform: translateX(0); }
         }
 
-        #modal { 
+        #modal, #scoreboard-modal { 
             position: fixed; inset: 0; background: rgba(0,0,0,0.9); 
             z-index: 100; display: none; align-items: center; 
             justify-content: center; padding: 20px; 
@@ -60,10 +61,59 @@
 
         .hidden { display: none !important; }
         input { font-family: 'Press Start 2P', cursive; }
+        
+        /* --- SCOREBOARD STYLES --- */
+        .subject-card { 
+            border: 3px solid #475569; 
+            padding: 15px; 
+            margin-bottom: 15px; 
+            background: #0f172a;
+            text-align: left;
+        }
+        .subject-card h4 { color: #facc15; margin-bottom: 10px; font-size: 9px; }
+        .stat-row { 
+            display: flex; 
+            justify-content: space-between; 
+            font-size: 7px; 
+            margin: 5px 0; 
+            color: #94a3b8;
+        }
+        .stat-val { color: #fff; }
+        .error-item {
+            border-left: 3px solid #f87171;
+            padding: 10px;
+            margin: 8px 0;
+            background: rgba(127, 29, 29, 0.3);
+            font-size: 7px;
+            text-align: left;
+        }
+        .error-item .q { color: #fbbf24; margin-bottom: 5px; }
+        .error-item .ans { color: #94a3b8; }
+        .error-item .ans.correct { color: #4ade80; }
+        .error-item .ans.wrong { color: #f87171; }
+        .tabs { display: flex; gap: 5px; margin-bottom: 15px; flex-wrap: wrap; justify-content: center; }
+        .tab-btn { 
+            font-size: 7px; padding: 8px 12px; background: #334155; 
+            border: 2px solid #fff; color: #fff; cursor: pointer;
+        }
+        .tab-btn.active { background: #facc15; color: #000; }
+        .scroll-area { 
+            max-height: 60vh; overflow-y: auto; padding-right: 5px; 
+        }
+        .scroll-area::-webkit-scrollbar { width: 8px; }
+        .scroll-area::-webkit-scrollbar-track { background: #0f172a; }
+        .scroll-area::-webkit-scrollbar-thumb { background: #475569; border: 2px solid #fff; }
+        
+        .header-actions { display: flex; gap: 10px; justify-content: flex-end; margin-bottom: 15px; }
+        .icon-btn { 
+            background: #334155; border: 3px solid #fff; color: #fff; 
+            font-size: 8px; padding: 8px 12px; cursor: pointer;
+        }
     </style>
 </head>
 <body class="p-4 flex flex-col items-center min-h-screen">
 
+    <!-- LOGIN SCREEN -->
     <div id="login-screen" class="w-full max-w-md mt-20">
         <div class="pixel-border p-6">
             <h1 class="text-yellow-400 text-xs mb-6">NUEVO JUGADOR</h1>
@@ -72,10 +122,14 @@
         </div>
     </div>
 
+    <!-- MENU SCREEN -->
     <div id="menu-screen" class="w-full max-w-md hidden">
+        <div class="header-actions">
+            <button onclick="showScoreboard()" class="icon-btn">📊 TABLERO</button>
+            <button onclick="logout()" class="icon-btn" style="border-color:#64748b;">🔄 CAMBIAR</button>
+        </div>
         <div class="flex justify-between items-center mb-6">
             <div class="text-[8px] text-cyan-400">HOLA, <span id="display-name"></span></div>
-            <button onclick="logout()" class="text-[7px] text-gray-500 underline">CAMBIAR JUGADOR</button>
         </div>
         <div class="pixel-border p-6">
             <h2 class="text-yellow-400 text-[10px] mb-6">ELIGE TU AVENTURA</h2>
@@ -86,10 +140,11 @@
         </div>
     </div>
 
+    <!-- GAME SCREEN -->
     <div id="game-screen" class="w-full max-w-md hidden">
-        <div class="flex justify-between mb-4 text-[8px]">
-            <button onclick="goBack()" class="text-gray-400">⬅️ MENU</button>
-            <span id="subject-title" class="text-yellow-400"></span>
+        <div class="header-actions">
+            <button onclick="showScoreboard()" class="icon-btn">📊 TABLERO</button>
+            <button onclick="goBack()" class="icon-btn">⬅️ MENU</button>
         </div>
         
         <div class="grid grid-cols-2 gap-2 mb-6 text-[8px]">
@@ -104,6 +159,7 @@
         <div id="options-grid"></div>
     </div>
 
+    <!-- MODAL DE RESPUESTA -->
     <div id="modal">
         <div id="modal-box" class="pixel-border p-8 w-full max-w-xs text-center">
             <div id="m-icon" class="text-5xl mb-4"></div>
@@ -113,11 +169,35 @@
         </div>
     </div>
 
+    <!-- SCOREBOARD MODAL -->
+    <div id="scoreboard-modal">
+        <div class="pixel-border p-6 w-full max-w-md text-center bg-[#1e293b]">
+            <h3 class="text-yellow-400 text-[10px] mb-4">📊 TABLERO DE PUNTUACIONES</h3>
+            
+            <div class="tabs">
+                <button class="tab-btn active" onclick="switchScoreTab('overview')">📈 GENERAL</button>
+                <button class="tab-btn" onclick="switchScoreTab('errors')">❌ ERRORES</button>
+            </div>
+            
+            <div id="score-overview" class="scroll-area">
+                <!-- Subject cards will be injected here -->
+            </div>
+            
+            <div id="score-errors" class="scroll-area hidden">
+                <div id="errors-content"></div>
+            </div>
+            
+            <button onclick="closeScoreboard()" class="btn-choice small" style="background:#fff; color:#000; margin-top:15px;">CERRAR</button>
+        </div>
+    </div>
+
     <script>
+        // === BASE DE DATOS DE PREGUNTAS ===
         const database = {
             matematicas: [
                 { q: "Resultado de: (12 / 3) + (5 * 2)", a: ["14", "18", "12", "20"], c: 0, p: "4 + 10 = 14." },
-                { q: "Si X + 22 = 50, ¿X vale?", a: ["32", "28", "38", "25"], c: 1, p: "50 - 22 = 28." }
+                { q: "Si X + 22 = 50, ¿X vale?", a: ["32", "28", "38", "25"], c: 1, p: "50 - 22 = 28." },
+                { q: "Raíz cuadrada de 144", a: ["11", "12", "13", "14"], c: 1, p: "12 × 12 = 144." }
             ],
             ingles: [
                 { q: "¿Cómo se dice 'Yo soy un estudiante'?", a: ["I are a student", "I is a student", "I am a student", "I be a student"], c: 2, p: "Con 'I' siempre usamos 'am'." },
@@ -130,18 +210,79 @@
                 { q: "¿Cómo se llama la técnica más fuerte de Krilin?", a: ["Kame Hame Ha", "Kienzan", "Masenko", "Taiyoken"], c: 1, p: "Es el disco de energía cortante." }
             ],
             historia: [
-                { q: "Primer presidente de México:", a: ["Benito Juárez", "Guadalupe Victoria", "Hidalgo", "Madero"], c: 1, p: "Gobernó de 1824 a 1829." }
+                { q: "Primer presidente de México:", a: ["Benito Juárez", "Guadalupe Victoria", "Hidalgo", "Madero"], c: 1, p: "Gobernó de 1824 a 1829." },
+                { q: "Año de la Independencia de México:", a: ["1810", "1821", "1808", "1824"], c: 0, p: "El grito fue en 1810." }
             ]
         };
 
+        const subjectNames = {
+            matematicas: "🧮 Matemáticas",
+            ingles: "🇬🇧 Inglés",
+            dragonball: "🐉 Dragon Ball Z",
+            historia: "⚔️ Historia"
+        };
+
+        // === VARIABLES GLOBALES ===
         let player = localStorage.getItem('player') || "";
         let currentS = "";
         let f = 0;
         let hits = 0;
+        let currentScoreTab = 'overview';
 
-        // --- SISTEMA DE JUGADOR ---
+        // === SISTEMA DE PUNTUACIONES PERSISTENTE ===
+        function getScores() {
+            const saved = localStorage.getItem(`scores_${player}`);
+            return saved ? JSON.parse(saved) : {
+                matematicas: { points: 0, correct: 0, incorrect: 0 },
+                ingles: { points: 0, correct: 0, incorrect: 0 },
+                dragonball: { points: 0, correct: 0, incorrect: 0 },
+                historia: { points: 0, correct: 0, incorrect: 0 }
+            };
+        }
+
+        function saveScores(scores) {
+            localStorage.setItem(`scores_${player}`, JSON.stringify(scores));
+        }
+
+        function getErrors() {
+            const saved = localStorage.getItem(`errors_${player}`);
+            return saved ? JSON.parse(saved) : {
+                matematicas: [], ingles: [], dragonball: [], historia: []
+            };
+        }
+
+        function saveErrors(errors) {
+            localStorage.setItem(`errors_${player}`, JSON.stringify(errors));
+        }
+
+        function logError(subject, question, wrongAnswer, correctAnswer, explanation) {
+            const errors = getErrors();
+            errors[subject].unshift({
+                question,
+                wrongAnswer,
+                correctAnswer,
+                explanation,
+                timestamp: new Date().toISOString()
+            });
+            // Limitar a 20 errores por materia
+            if(errors[subject].length > 20) errors[subject].pop();
+            saveErrors(errors);
+        }
+
+        function updateScore(subject, isCorrect) {
+            const scores = getScores();
+            if(isCorrect) {
+                scores[subject].points += 10;
+                scores[subject].correct += 1;
+            } else {
+                scores[subject].incorrect += 1;
+            }
+            saveScores(scores);
+        }
+
+        // === SISTEMA DE JUGADOR ===
         function savePlayer() {
-            const name = document.getElementById('player-name').value;
+            const name = document.getElementById('player-name').value.trim();
             if(name) {
                 localStorage.setItem('player', name);
                 location.reload();
@@ -153,20 +294,25 @@
             location.reload();
         }
 
-        // --- CONTROL DE JUEGO ---
+        // === CONTROL DE JUEGO ===
         function start(subject) {
             currentS = subject;
             f = 0; hits = 0;
             document.getElementById('menu-screen').classList.add('hidden');
             document.getElementById('game-screen').classList.remove('hidden');
-            document.getElementById('subject-title').innerText = subject.toUpperCase();
+            document.getElementById('subject-title').innerText = subjectNames[subject] || subject.toUpperCase();
             render();
         }
 
         function render() {
             const qs = database[currentS];
             if (f >= qs.length) {
-                showM("👑", "LEVEL CLEARED", "¡Increíble " + player + "! Dominas esta materia.");
+                // Actualizar puntuación final de la sesión
+                const scores = getScores();
+                scores[currentS].points += hits * 10;
+                saveScores(scores);
+                
+                showM("👑", "LEVEL CLEARED", `¡Increíble ${player}! Obtuviste ${hits}/${qs.length} aciertos.`);
                 window.shouldGoMenu = true;
                 return;
             }
@@ -182,24 +328,34 @@
                 const b = document.createElement('button');
                 b.className = "btn-answer";
                 b.innerText = txt;
-                b.onclick = () => check(i);
+                b.onclick = () => check(i, qd);
                 grid.appendChild(b);
             });
         }
 
-        function check(i) {
-            const qd = database[currentS][f];
+        function check(selectedIndex, questionData) {
             const buttons = document.querySelectorAll('.btn-answer');
             buttons.forEach(btn => btn.disabled = true);
 
-            if (i === qd.c) {
+            if (selectedIndex === questionData.c) {
                 document.body.classList.add('flash-correct');
-                hits++; f++;
-                showM("💎", "¡GENIAL!", "Respuesta correcta.");
+                hits++;
+                updateScore(currentS, true);
+                showM("💎", "¡GENIAL!", "Respuesta correcta. +10 puntos");
             } else {
                 document.body.classList.add('flash-wrong');
-                showM("💥", "¡FALLO!", "PISTA: " + qd.p);
+                updateScore(currentS, false);
+                // Registrar el error
+                logError(
+                    currentS,
+                    questionData.q,
+                    questionData.a[selectedIndex],
+                    questionData.a[questionData.c],
+                    questionData.p
+                );
+                showM("💥", "¡FALLO!", `PISTA: ${questionData.p}`);
             }
+            f++;
         }
 
         function showM(i, t, d) {
@@ -225,11 +381,109 @@
             document.getElementById('menu-screen').classList.remove('hidden');
         }
 
-        // --- INICIO ---
+        // === FUNCIONES DEL TABLERO ===
+        function showScoreboard() {
+            document.getElementById('scoreboard-modal').style.display = 'flex';
+            renderScoreboard();
+        }
+
+        function closeScoreboard() {
+            document.getElementById('scoreboard-modal').style.display = 'none';
+        }
+
+        function switchScoreTab(tab) {
+            currentScoreTab = tab;
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            document.getElementById('score-overview').classList.toggle('hidden', tab !== 'overview');
+            document.getElementById('score-errors').classList.toggle('hidden', tab !== 'errors');
+            
+            if(tab === 'overview') renderScoreOverview();
+            if(tab === 'errors') renderErrors();
+        }
+
+        function renderScoreboard() {
+            if(currentScoreTab === 'overview') renderScoreOverview();
+            else renderErrors();
+        }
+
+        function renderScoreOverview() {
+            const scores = getScores();
+            const container = document.getElementById('score-overview');
+            container.innerHTML = '';
+            
+            Object.keys(scores).forEach(subject => {
+                const s = scores[subject];
+                const total = s.correct + s.incorrect;
+                const accuracy = total > 0 ? Math.round((s.correct / total) * 100) : 0;
+                
+                const card = document.createElement('div');
+                card.className = 'subject-card';
+                card.innerHTML = `
+                    <h4>${subjectNames[subject]}</h4>
+                    <div class="stat-row"><span>⭐ PUNTOS:</span><span class="stat-val">${s.points}</span></div>
+                    <div class="stat-row"><span>✅ ACIERTOS:</span><span class="stat-val" style="color:#4ade80">${s.correct}</span></div>
+                    <div class="stat-row"><span>❌ ERRORES:</span><span class="stat-val" style="color:#f87171">${s.incorrect}</span></div>
+                    <div class="stat-row"><span>📊 PRECISIÓN:</span><span class="stat-val">${accuracy}%</span></div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function renderErrors() {
+            const errors = getErrors();
+            const container = document.getElementById('errors-content');
+            container.innerHTML = '';
+            
+            let hasErrors = false;
+            
+            Object.keys(errors).forEach(subject => {
+                if(errors[subject].length > 0) {
+                    hasErrors = true;
+                    const section = document.createElement('div');
+                    section.className = 'subject-card';
+                    section.innerHTML = `<h4>${subjectNames[subject]} - Errores</h4>`;
+                    
+                    errors[subject].slice(0, 5).forEach(err => {
+                        const errorDiv = document.createElement('div');
+                        errorDiv.className = 'error-item';
+                        errorDiv.innerHTML = `
+                            <div class="q">❓ ${err.question}</div>
+                            <div class="ans wrong">✖️ Tu respuesta: ${err.wrongAnswer}</div>
+                            <div class="ans correct">✔️ Correcta: ${err.correctAnswer}</div>
+                            <div style="margin-top:5px; color:#60a5fa">💡 ${err.explanation}</div>
+                        `;
+                        section.appendChild(errorDiv);
+                    });
+                    
+                    if(errors[subject].length > 5) {
+                        const more = document.createElement('div');
+                        more.className = 'text-[6px] text-gray-500 mt-2';
+                        more.innerText = `+ ${errors[subject].length - 5} errores más...`;
+                        section.appendChild(more);
+                    }
+                    
+                    container.appendChild(section);
+                }
+            });
+            
+            if(!hasErrors) {
+                container.innerHTML = '<div class="text-[8px] text-gray-400 p-4">🎉 ¡Sin errores registrados! Sigue así.</div>';
+            }
+        }
+
+        // === INICIALIZACIÓN ===
         if(player) {
             document.getElementById('login-screen').classList.add('hidden');
             document.getElementById('menu-screen').classList.remove('hidden');
             document.getElementById('display-name').innerText = player.toUpperCase();
+        }
+
+        // Cerrar modales al hacer clic fuera
+        window.onclick = function(event) {
+            if(event.target === document.getElementById('scoreboard-modal')) closeScoreboard();
+            if(event.target === document.getElementById('modal')) closeModal();
         }
     </script>
 </body>
