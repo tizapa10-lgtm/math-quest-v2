@@ -2,285 +2,190 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mega Quest: Multiversos</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
-        :root { --bg: #0f172a; --panel: #1e293b; --gold: #facc15; }
         
         body { 
             font-family: 'Press Start 2P', cursive; 
-            background-color: var(--bg); 
+            background-color: #0f172a; 
             color: #fff; 
             text-align: center; 
-            transition: background-color 0.3s ease;
-            overflow-x: hidden;
+            margin: 0;
+            padding: 20px;
         }
 
         .pixel-border { 
             border: 4px solid #fff; 
             box-shadow: 0 0 0 4px #000, 0 0 0 8px #fff; 
-            background-color: var(--panel); 
-            margin-bottom: 20px; 
+            background-color: #1e293b; 
+            margin: 20px auto; 
+            max-width: 600px;
+            padding: 20px;
         }
 
-        .btn-choice { 
+        .btn { 
             background: #334155; 
             border: 4px solid #000; 
-            box-shadow: inset -4px -4px 0 #1e293b, inset 4px 4px 0 #475569; 
-            font-size: 10px; padding: 20px; width: 100%; margin-bottom: 12px; 
-            color: white; cursor: pointer; transition: transform 0.1s;
+            color: white; 
+            padding: 15px 20px; 
+            margin: 10px;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 10px;
+            cursor: pointer;
+            display: inline-block;
         }
 
-        .btn-choice:active { transform: scale(0.95); }
-        .btn-choice.small { font-size: 8px; padding: 12px; width: auto; }
-
-        .btn-answer { 
-            background: rgba(30, 41, 59, 0.8); 
-            border: 3px solid #fff; 
-            font-size: 9px; padding: 15px; width: 100%; 
-            margin-bottom: 10px; color: white; text-align: left;
-            animation: slideIn 0.3s ease-out;
-        }
-
-        /* --- EFECTOS DE COLOR --- */
-        .flash-correct { background-color: #065f46 !important; }
-        .flash-wrong { background-color: #7f1d1d !important; }
-
-        @keyframes slideIn {
-            from { opacity: 0; transform: translateX(-20px); }
-            to { opacity: 1; transform: translateX(0); }
-        }
-
-        #modal, #scoreboard-modal { 
-            position: fixed; inset: 0; background: rgba(0,0,0,0.9); 
-            z-index: 100; display: none; align-items: center; 
-            justify-content: center; padding: 20px; 
-        }
-
+        .btn:hover { background: #475569; }
+        
         .hidden { display: none !important; }
-        input { font-family: 'Press Start 2P', cursive; }
         
-        /* --- SCOREBOARD STYLES --- */
-        .subject-card { 
-            border: 3px solid #475569; 
-            padding: 15px; 
-            margin-bottom: 15px; 
-            background: #0f172a;
-            text-align: left;
-        }
-        .subject-card h4 { color: #facc15; margin-bottom: 10px; font-size: 9px; }
-        .stat-row { 
-            display: flex; 
-            justify-content: space-between; 
-            font-size: 7px; 
-            margin: 5px 0; 
-            color: #94a3b8;
-        }
-        .stat-val { color: #fff; }
-        .error-item {
-            border-left: 3px solid #f87171;
+        input { 
+            font-family: 'Press Start 2P', cursive;
             padding: 10px;
-            margin: 8px 0;
-            background: rgba(127, 29, 29, 0.3);
-            font-size: 7px;
+            margin: 10px;
+            width: 80%;
+            max-width: 300px;
+        }
+
+        .stat-box {
+            display: inline-block;
+            border: 3px solid #fff;
+            padding: 10px 20px;
+            margin: 5px;
+            background: #000;
+            font-size: 8px;
+        }
+
+        .option-btn {
+            display: block;
+            width: 100%;
+            max-width: 500px;
+            margin: 10px auto;
+            padding: 15px;
+            background: #1e293b;
+            border: 3px solid #fff;
+            color: white;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 9px;
+            cursor: pointer;
             text-align: left;
         }
-        .error-item .q { color: #fbbf24; margin-bottom: 5px; }
-        .error-item .ans { color: #94a3b8; }
-        .error-item .ans.correct { color: #4ade80; }
-        .error-item .ans.wrong { color: #f87171; }
-        .tabs { display: flex; gap: 5px; margin-bottom: 15px; flex-wrap: wrap; justify-content: center; }
-        .tab-btn { 
-            font-size: 7px; padding: 8px 12px; background: #334155; 
-            border: 2px solid #fff; color: #fff; cursor: pointer;
+
+        .option-btn:hover { background: #334155; }
+
+        #modal {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.9);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
         }
-        .tab-btn.active { background: #facc15; color: #000; }
-        .scroll-area { 
-            max-height: 60vh; overflow-y: auto; padding-right: 5px; 
-        }
-        .scroll-area::-webkit-scrollbar { width: 8px; }
-        .scroll-area::-webkit-scrollbar-track { background: #0f172a; }
-        .scroll-area::-webkit-scrollbar-thumb { background: #475569; border: 2px solid #fff; }
-        
-        .header-actions { display: flex; gap: 10px; justify-content: flex-end; margin-bottom: 15px; }
-        .icon-btn { 
-            background: #334155; border: 3px solid #fff; color: #fff; 
-            font-size: 8px; padding: 8px 12px; cursor: pointer;
+
+        .modal-content {
+            border: 4px solid #fff;
+            box-shadow: 0 0 0 4px #000, 0 0 0 8px #fff;
+            background: #1e293b;
+            padding: 40px;
+            max-width: 400px;
         }
     </style>
 </head>
-<body class="p-4 flex flex-col items-center min-h-screen">
+<body>
 
-    <!-- LOGIN SCREEN -->
-    <div id="login-screen" class="w-full max-w-md mt-20">
-        <div class="pixel-border p-6">
-            <h1 class="text-yellow-400 text-xs mb-6">NUEVO JUGADOR</h1>
-            <input type="text" id="player-name" placeholder="NOMBRE..." class="w-full p-3 bg-black border-2 border-white text-white text-[10px] mb-6 text-center focus:outline-none">
-            <button onclick="savePlayer()" class="btn-choice">REGISTRARSE</button>
-        </div>
+    <!-- LOGIN -->
+    <div id="login-screen" class="pixel-border">
+        <h1 style="color: #facc15; font-size: 12px; margin-bottom: 30px;">NUEVO JUGADOR</h1>
+        <input type="text" id="player-name" placeholder="NOMBRE..." style="text-align: center;">
+        <br>
+        <button class="btn" onclick="savePlayer()">REGISTRARSE</button>
     </div>
 
-    <!-- MENU SCREEN -->
-    <div id="menu-screen" class="w-full max-w-md hidden">
-        <div class="header-actions">
-            <button onclick="showScoreboard()" class="icon-btn">📊 TABLERO</button>
-            <button onclick="logout()" class="icon-btn" style="border-color:#64748b;">🔄 CAMBIAR</button>
+    <!-- MENU -->
+    <div id="menu-screen" class="hidden">
+        <div style="margin-bottom: 20px;">
+            <button class="btn" onclick="showScoreboard()">📊 TABLERO</button>
+            <button class="btn" onclick="logout()">🔄 CAMBIAR JUGADOR</button>
         </div>
-        <div class="flex justify-between items-center mb-6">
-            <div class="text-[8px] text-cyan-400">HOLA, <span id="display-name"></span></div>
-        </div>
-        <div class="pixel-border p-6">
-            <h2 class="text-yellow-400 text-[10px] mb-6">ELIGE TU AVENTURA</h2>
-            <button onclick="start('matematicas')" class="btn-choice" style="border-color: #22d3ee;">🧮 MATEMÁTICAS</button>
-            <button onclick="start('ingles')" class="btn-choice" style="border-color: #818cf8;">🇬🇧 INGLÉS (SEC)</button>
-            <button onclick="start('dragonball')" class="btn-choice" style="border-color: #fb923c;">🐉 DRAGON BALL Z</button>
-            <button onclick="start('historia')" class="btn-choice" style="border-color: #f87171;">⚔️ HISTORIA</button>
-        </div>
-    </div>
-
-    <!-- GAME SCREEN -->
-    <div id="game-screen" class="w-full max-w-md hidden">
-        <div class="header-actions">
-            <button onclick="showScoreboard()" class="icon-btn">📊 TABLERO</button>
-            <button onclick="goBack()" class="icon-btn">⬅️ MENU</button>
+        <div style="font-size: 8px; color: #22d3ee; margin-bottom: 20px;">
+            HOLA, <span id="display-name"></span>
         </div>
         
-        <div class="grid grid-cols-2 gap-2 mb-6 text-[8px]">
-            <div class="p-2 border-4 border-gray-700 bg-black">PUNTOS: <span id="h">0</span></div>
-            <div class="p-2 border-4 border-gray-700 bg-black">PISO: <span id="f-num">1</span></div>
+        <div class="pixel-border">
+            <h2 style="color: #facc15; font-size: 10px; margin-bottom: 20px;">ELIGE TU AVENTURA</h2>
+            <button class="btn" onclick="start('matematicas')" style="display: block; width: 80%; margin: 10px auto;">🧮 MATEMÁTICAS</button>
+            <button class="btn" onclick="start('ingles')" style="display: block; width: 80%; margin: 10px auto;">🇬 INGLÉS</button>
+            <button class="btn" onclick="start('dragonball')" style="display: block; width: 80%; margin: 10px auto;">🐉 DRAGON BALL Z</button>
+            <button class="btn" onclick="start('historia')" style="display: block; width: 80%; margin: 10px auto;">⚔️ HISTORIA</button>
+        </div>
+    </div>
+
+    <!-- GAME -->
+    <div id="game-screen" class="hidden">
+        <div style="margin-bottom: 20px;">
+            <button class="btn" onclick="showScoreboard()">📊 TABLERO</button>
+            <button class="btn" onclick="goBack()">⬅️ MENU</button>
+        </div>
+        
+        <div style="margin: 20px 0;">
+            <div class="stat-box">PUNTOS: <span id="h">0</span></div>
+            <div class="stat-box">PISO: <span id="f-num">1</span></div>
         </div>
 
-        <div class="p-6 pixel-border bg-black/50">
-            <div id="q-text" class="text-[9px] text-green-300 leading-relaxed"></div>
+        <div class="pixel-border" style="margin: 20px auto;">
+            <div id="q-text" style="font-size: 10px; line-height: 1.8; min-height: 60px;"></div>
         </div>
 
         <div id="options-grid"></div>
     </div>
 
-    <!-- MODAL DE RESPUESTA -->
+    <!-- MODAL -->
     <div id="modal">
-        <div id="modal-box" class="pixel-border p-8 w-full max-w-xs text-center">
-            <div id="m-icon" class="text-5xl mb-4"></div>
-            <div id="m-title" class="text-sm mb-4"></div>
-            <div id="m-desc" class="text-[8px] text-gray-400 mb-8 leading-loose"></div>
-            <button onclick="closeModal()" class="btn-choice" style="background:#fff; color:#000;">SIGUIENTE</button>
+        <div class="modal-content">
+            <div id="m-icon" style="font-size: 48px; margin-bottom: 20px;"></div>
+            <div id="m-title" style="font-size: 12px; margin-bottom: 15px; color: #facc15;"></div>
+            <div id="m-desc" style="font-size: 8px; color: #94a3b8; margin-bottom: 30px; line-height: 1.6;"></div>
+            <button class="btn" onclick="closeModal()" style="background: #fff; color: #000;">CONTINUAR</button>
         </div>
     </div>
 
     <!-- SCOREBOARD MODAL -->
-    <div id="scoreboard-modal">
-        <div class="pixel-border p-6 w-full max-w-md text-center bg-[#1e293b]">
-            <h3 class="text-yellow-400 text-[10px] mb-4">📊 TABLERO DE PUNTUACIONES</h3>
-            
-            <div class="tabs">
-                <button class="tab-btn active" onclick="switchScoreTab('overview')">📈 GENERAL</button>
-                <button class="tab-btn" onclick="switchScoreTab('errors')">❌ ERRORES</button>
-            </div>
-            
-            <div id="score-overview" class="scroll-area">
-                <!-- Subject cards will be injected here -->
-            </div>
-            
-            <div id="score-errors" class="scroll-area hidden">
-                <div id="errors-content"></div>
-            </div>
-            
-            <button onclick="closeScoreboard()" class="btn-choice small" style="background:#fff; color:#000; margin-top:15px;">CERRAR</button>
+    <div id="scoreboard-modal" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.9); display: none; align-items: center; justify-content: center; z-index: 1000;">
+        <div class="modal-content" style="max-width: 500px; max-height: 80vh; overflow-y: auto;">
+            <h3 style="color: #facc15; font-size: 10px; margin-bottom: 20px;">📊 TABLERO</h3>
+            <div id="score-content"></div>
+            <button class="btn" onclick="closeScoreboard()" style="background: #fff; color: #000; margin-top: 20px;">CERRAR</button>
         </div>
     </div>
 
     <script>
-        // === BASE DE DATOS DE PREGUNTAS ===
         const database = {
             matematicas: [
                 { q: "Resultado de: (12 / 3) + (5 * 2)", a: ["14", "18", "12", "20"], c: 0, p: "4 + 10 = 14." },
-                { q: "Si X + 22 = 50, ¿X vale?", a: ["32", "28", "38", "25"], c: 1, p: "50 - 22 = 28." },
-                { q: "Raíz cuadrada de 144", a: ["11", "12", "13", "14"], c: 1, p: "12 × 12 = 144." }
+                { q: "Si X + 22 = 50, ¿X vale?", a: ["32", "28", "38", "25"], c: 1, p: "50 - 22 = 28." }
             ],
             ingles: [
                 { q: "¿Cómo se dice 'Yo soy un estudiante'?", a: ["I are a student", "I is a student", "I am a student", "I be a student"], c: 2, p: "Con 'I' siempre usamos 'am'." },
-                { q: "Significado de 'Library':", a: ["Librería (venta)", "Biblioteca", "Libreta", "Libro"], c: 1, p: "Ojo: es un falso amigo, significa Biblioteca." },
-                { q: "Pasado del verbo 'GO':", a: ["Goed", "Went", "Gone", "Goes"], c: 1, p: "Es un verbo irregular." }
+                { q: "Significado de 'Library':", a: ["Librería", "Biblioteca", "Libreta", "Libro"], c: 1, p: "Significa Biblioteca." }
             ],
             dragonball: [
-                { q: "¿Quién mató a Freezer por primera vez en la Tierra?", a: ["Goku", "Vegeta", "Trunks del Futuro", "Gohan"], c: 2, p: "Llegó del futuro y usó su espada." },
-                { q: "¿Cuál es el nombre del planeta de donde viene Piccolo?", a: ["Planeta Vegueta", "Namekusei", "Tierra", "Planeta Kaio"], c: 1, p: "Es el hogar de los Namekianos." },
-                { q: "¿Cómo se llama la técnica más fuerte de Krilin?", a: ["Kame Hame Ha", "Kienzan", "Masenko", "Taiyoken"], c: 1, p: "Es el disco de energía cortante." }
+                { q: "¿Quién mató a Freezer?", a: ["Goku", "Vegeta", "Trunks", "Gohan"], c: 2, p: "Trunks del futuro." },
+                { q: "Planeta de Piccolo:", a: ["Vegueta", "Namekusei", "Tierra", "Kaio"], c: 1, p: "Namekusei." }
             ],
             historia: [
-                { q: "Primer presidente de México:", a: ["Benito Juárez", "Guadalupe Victoria", "Hidalgo", "Madero"], c: 1, p: "Gobernó de 1824 a 1829." },
-                { q: "Año de la Independencia de México:", a: ["1810", "1821", "1808", "1824"], c: 0, p: "El grito fue en 1810." }
+                { q: "Primer presidente de México:", a: ["Juárez", "Guadalupe Victoria", "Hidalgo", "Madero"], c: 1, p: "Guadalupe Victoria (1824-1829)." }
             ]
         };
 
-        const subjectNames = {
-            matematicas: "🧮 Matemáticas",
-            ingles: "🇬🇧 Inglés",
-            dragonball: "🐉 Dragon Ball Z",
-            historia: "⚔️ Historia"
-        };
-
-        // === VARIABLES GLOBALES ===
         let player = localStorage.getItem('player') || "";
         let currentS = "";
         let f = 0;
         let hits = 0;
-        let currentScoreTab = 'overview';
 
-        // === SISTEMA DE PUNTUACIONES PERSISTENTE ===
-        function getScores() {
-            const saved = localStorage.getItem(`scores_${player}`);
-            return saved ? JSON.parse(saved) : {
-                matematicas: { points: 0, correct: 0, incorrect: 0 },
-                ingles: { points: 0, correct: 0, incorrect: 0 },
-                dragonball: { points: 0, correct: 0, incorrect: 0 },
-                historia: { points: 0, correct: 0, incorrect: 0 }
-            };
-        }
-
-        function saveScores(scores) {
-            localStorage.setItem(`scores_${player}`, JSON.stringify(scores));
-        }
-
-        function getErrors() {
-            const saved = localStorage.getItem(`errors_${player}`);
-            return saved ? JSON.parse(saved) : {
-                matematicas: [], ingles: [], dragonball: [], historia: []
-            };
-        }
-
-        function saveErrors(errors) {
-            localStorage.setItem(`errors_${player}`, JSON.stringify(errors));
-        }
-
-        function logError(subject, question, wrongAnswer, correctAnswer, explanation) {
-            const errors = getErrors();
-            errors[subject].unshift({
-                question,
-                wrongAnswer,
-                correctAnswer,
-                explanation,
-                timestamp: new Date().toISOString()
-            });
-            // Limitar a 20 errores por materia
-            if(errors[subject].length > 20) errors[subject].pop();
-            saveErrors(errors);
-        }
-
-        function updateScore(subject, isCorrect) {
-            const scores = getScores();
-            if(isCorrect) {
-                scores[subject].points += 10;
-                scores[subject].correct += 1;
-            } else {
-                scores[subject].incorrect += 1;
-            }
-            saveScores(scores);
-        }
-
-        // === SISTEMA DE JUGADOR ===
         function savePlayer() {
             const name = document.getElementById('player-name').value.trim();
             if(name) {
@@ -294,86 +199,70 @@
             location.reload();
         }
 
-        // === CONTROL DE JUEGO ===
         function start(subject) {
             currentS = subject;
             f = 0; hits = 0;
             document.getElementById('menu-screen').classList.add('hidden');
             document.getElementById('game-screen').classList.remove('hidden');
-            document.getElementById('subject-title').innerText = subjectNames[subject] || subject.toUpperCase();
             render();
         }
 
         function render() {
             const qs = database[currentS];
             if (f >= qs.length) {
-                // Actualizar puntuación final de la sesión
-                const scores = getScores();
-                scores[currentS].points += hits * 10;
-                saveScores(scores);
-                
-                showM("👑", "LEVEL CLEARED", `¡Increíble ${player}! Obtuviste ${hits}/${qs.length} aciertos.`);
-                window.shouldGoMenu = true;
+                showM("👑", "¡COMPLETADO!", `Obtuviste ${hits}/${qs.length} aciertos`);
+                setTimeout(() => { goBack(); }, 2000);
                 return;
             }
 
             document.getElementById('f-num').innerText = f + 1;
             document.getElementById('h').innerText = hits;
-            const qd = qs[f];
-            document.getElementById('q-text').innerText = qd.q;
+            document.getElementById('q-text').innerText = qs[f].q;
             
             const grid = document.getElementById('options-grid');
             grid.innerHTML = '';
-            qd.a.forEach((txt, i) => {
+            qs[f].a.forEach((txt, i) => {
                 const b = document.createElement('button');
-                b.className = "btn-answer";
+                b.className = 'option-btn';
                 b.innerText = txt;
-                b.onclick = () => check(i, qd);
+                b.onclick = () => check(i);
                 grid.appendChild(b);
             });
         }
 
-        function check(selectedIndex, questionData) {
-            const buttons = document.querySelectorAll('.btn-answer');
+        function check(i) {
+            const qd = database[currentS][f];
+            const buttons = document.querySelectorAll('.option-btn');
             buttons.forEach(btn => btn.disabled = true);
 
-            if (selectedIndex === questionData.c) {
-                document.body.classList.add('flash-correct');
+            if (i === qd.c) {
                 hits++;
-                updateScore(currentS, true);
-                showM("💎", "¡GENIAL!", "Respuesta correcta. +10 puntos");
+                f++;
+                showM("💎", "¡CORRECTO!", "+10 puntos");
+                setTimeout(() => {
+                    closeModal();
+                    render();
+                }, 1500);
             } else {
-                document.body.classList.add('flash-wrong');
-                updateScore(currentS, false);
-                // Registrar el error
-                logError(
-                    currentS,
-                    questionData.q,
-                    questionData.a[selectedIndex],
-                    questionData.a[questionData.c],
-                    questionData.p
-                );
-                showM("💥", "¡FALLO!", `PISTA: ${questionData.p}`);
+                f++;
+                showM("💥", "INCORRECTO", `PISTA: ${qd.p}`);
+                setTimeout(() => {
+                    closeModal();
+                    render();
+                }, 2000);
             }
-            f++;
+            document.getElementById('h').innerText = hits;
         }
 
-        function showM(i, t, d) {
-            document.getElementById('m-icon').innerText = i;
-            document.getElementById('m-title').innerText = t;
-            document.getElementById('m-desc').innerText = d;
+        function showM(icon, title, desc) {
+            document.getElementById('m-icon').innerText = icon;
+            document.getElementById('m-title').innerText = title;
+            document.getElementById('m-desc').innerText = desc;
             document.getElementById('modal').style.display = 'flex';
         }
 
         function closeModal() {
-            document.body.classList.remove('flash-correct', 'flash-wrong');
             document.getElementById('modal').style.display = 'none';
-            if(window.shouldGoMenu) {
-                window.shouldGoMenu = false;
-                goBack();
-            } else {
-                render();
-            }
         }
 
         function goBack() {
@@ -381,109 +270,39 @@
             document.getElementById('menu-screen').classList.remove('hidden');
         }
 
-        // === FUNCIONES DEL TABLERO ===
         function showScoreboard() {
+            const scores = getScores();
+            let html = '';
+            Object.keys(scores).forEach(subj => {
+                const s = scores[subj];
+                html += `<div style="border: 2px solid #475569; padding: 10px; margin: 10px 0; font-size: 8px; text-align: left;">
+                    <strong style="color: #facc15;">${subj.toUpperCase()}</strong><br>
+                    Puntos: ${s.points} | Correctas: ${s.correct} | Errores: ${s.incorrect}
+                </div>`;
+            });
+            document.getElementById('score-content').innerHTML = html || '<p style="font-size: 8px;">Sin datos aún</p>';
             document.getElementById('scoreboard-modal').style.display = 'flex';
-            renderScoreboard();
         }
 
         function closeScoreboard() {
             document.getElementById('scoreboard-modal').style.display = 'none';
         }
 
-        function switchScoreTab(tab) {
-            currentScoreTab = tab;
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            event.target.classList.add('active');
-            
-            document.getElementById('score-overview').classList.toggle('hidden', tab !== 'overview');
-            document.getElementById('score-errors').classList.toggle('hidden', tab !== 'errors');
-            
-            if(tab === 'overview') renderScoreOverview();
-            if(tab === 'errors') renderErrors();
+        function getScores() {
+            const saved = localStorage.getItem(`scores_${player}`);
+            return saved ? JSON.parse(saved) : {
+                matematicas: { points: 0, correct: 0, incorrect: 0 },
+                ingles: { points: 0, correct: 0, incorrect: 0 },
+                dragonball: { points: 0, correct: 0, incorrect: 0 },
+                historia: { points: 0, correct: 0, incorrect: 0 }
+            };
         }
 
-        function renderScoreboard() {
-            if(currentScoreTab === 'overview') renderScoreOverview();
-            else renderErrors();
-        }
-
-        function renderScoreOverview() {
-            const scores = getScores();
-            const container = document.getElementById('score-overview');
-            container.innerHTML = '';
-            
-            Object.keys(scores).forEach(subject => {
-                const s = scores[subject];
-                const total = s.correct + s.incorrect;
-                const accuracy = total > 0 ? Math.round((s.correct / total) * 100) : 0;
-                
-                const card = document.createElement('div');
-                card.className = 'subject-card';
-                card.innerHTML = `
-                    <h4>${subjectNames[subject]}</h4>
-                    <div class="stat-row"><span>⭐ PUNTOS:</span><span class="stat-val">${s.points}</span></div>
-                    <div class="stat-row"><span>✅ ACIERTOS:</span><span class="stat-val" style="color:#4ade80">${s.correct}</span></div>
-                    <div class="stat-row"><span>❌ ERRORES:</span><span class="stat-val" style="color:#f87171">${s.incorrect}</span></div>
-                    <div class="stat-row"><span>📊 PRECISIÓN:</span><span class="stat-val">${accuracy}%</span></div>
-                `;
-                container.appendChild(card);
-            });
-        }
-
-        function renderErrors() {
-            const errors = getErrors();
-            const container = document.getElementById('errors-content');
-            container.innerHTML = '';
-            
-            let hasErrors = false;
-            
-            Object.keys(errors).forEach(subject => {
-                if(errors[subject].length > 0) {
-                    hasErrors = true;
-                    const section = document.createElement('div');
-                    section.className = 'subject-card';
-                    section.innerHTML = `<h4>${subjectNames[subject]} - Errores</h4>`;
-                    
-                    errors[subject].slice(0, 5).forEach(err => {
-                        const errorDiv = document.createElement('div');
-                        errorDiv.className = 'error-item';
-                        errorDiv.innerHTML = `
-                            <div class="q">❓ ${err.question}</div>
-                            <div class="ans wrong">✖️ Tu respuesta: ${err.wrongAnswer}</div>
-                            <div class="ans correct">✔️ Correcta: ${err.correctAnswer}</div>
-                            <div style="margin-top:5px; color:#60a5fa">💡 ${err.explanation}</div>
-                        `;
-                        section.appendChild(errorDiv);
-                    });
-                    
-                    if(errors[subject].length > 5) {
-                        const more = document.createElement('div');
-                        more.className = 'text-[6px] text-gray-500 mt-2';
-                        more.innerText = `+ ${errors[subject].length - 5} errores más...`;
-                        section.appendChild(more);
-                    }
-                    
-                    container.appendChild(section);
-                }
-            });
-            
-            if(!hasErrors) {
-                container.innerHTML = '<div class="text-[8px] text-gray-400 p-4">🎉 ¡Sin errores registrados! Sigue así.</div>';
-            }
-        }
-
-        // === INICIALIZACIÓN ===
+        // Inicialización
         if(player) {
             document.getElementById('login-screen').classList.add('hidden');
             document.getElementById('menu-screen').classList.remove('hidden');
             document.getElementById('display-name').innerText = player.toUpperCase();
-        }
-
-        // Cerrar modales al hacer clic fuera
-        window.onclick = function(event) {
-            if(event.target === document.getElementById('scoreboard-modal')) closeScoreboard();
-            if(event.target === document.getElementById('modal')) closeModal();
         }
     </script>
 </body>
