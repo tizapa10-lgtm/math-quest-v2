@@ -3,126 +3,203 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Multi-Quest 6to Grado</title>
+    <title>Mega Quest: Multiversos</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
         :root { --bg: #0f172a; --panel: #1e293b; --gold: #facc15; }
-        body { font-family: 'Press Start 2P', cursive; background-color: var(--bg); color: #fff; text-align: center; }
-        .pixel-border { border: 4px solid #fff; box-shadow: 0 0 0 4px #000, 0 0 0 8px #fff; background-color: var(--panel); margin-bottom: 20px; }
-        .btn-choice { background: #334155; border: 4px solid #000; box-shadow: inset -4px -4px 0 #1e293b, inset 4px 4px 0 #475569; font-size: 10px; padding: 20px; width: 100%; margin-bottom: 12px; color: white; cursor: pointer; }
-        .btn-answer { background: #1e293b; border: 4px solid #fff; font-size: 9px; padding: 15px; width: 100%; margin-bottom: 10px; color: white; text-align: left; }
-        #modal { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 100; display: none; align-items: center; justify-content: center; padding: 20px; }
+        
+        body { 
+            font-family: 'Press Start 2P', cursive; 
+            background-color: var(--bg); 
+            color: #fff; 
+            text-align: center; 
+            transition: background-color 0.3s ease;
+            overflow-x: hidden;
+        }
+
+        .pixel-border { 
+            border: 4px solid #fff; 
+            box-shadow: 0 0 0 4px #000, 0 0 0 8px #fff; 
+            background-color: var(--panel); 
+            margin-bottom: 20px; 
+        }
+
+        .btn-choice { 
+            background: #334155; 
+            border: 4px solid #000; 
+            box-shadow: inset -4px -4px 0 #1e293b, inset 4px 4px 0 #475569; 
+            font-size: 10px; padding: 20px; width: 100%; margin-bottom: 12px; 
+            color: white; cursor: pointer; transition: transform 0.1s;
+        }
+
+        .btn-choice:active { transform: scale(0.95); }
+
+        .btn-answer { 
+            background: rgba(30, 41, 59, 0.8); 
+            border: 3px solid #fff; 
+            font-size: 9px; padding: 15px; width: 100%; 
+            margin-bottom: 10px; color: white; text-align: left;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        /* --- EFECTOS DE COLOR --- */
+        .flash-correct { background-color: #065f46 !important; }
+        .flash-wrong { background-color: #7f1d1d !important; }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        #modal { 
+            position: fixed; inset: 0; background: rgba(0,0,0,0.9); 
+            z-index: 100; display: none; align-items: center; 
+            justify-content: center; padding: 20px; 
+        }
+
         .hidden { display: none !important; }
+        input { font-family: 'Press Start 2P', cursive; }
     </style>
 </head>
-<body class="p-4 flex flex-col items-center">
+<body class="p-4 flex flex-col items-center min-h-screen">
 
-    <div id="menu-screen" class="w-full max-w-md">
-        <div class="pixel-border p-6 mt-10">
-            <h1 class="text-yellow-400 text-sm mb-8">ELIGE TU MISIÓN</h1>
-            <button onclick="startSubject('matematicas')" class="btn-choice" style="border-color: #22d3ee;">🧮 MATEMÁTICAS</button>
-            <button onclick="startSubject('espanol')" class="btn-choice" style="border-color: #f472b6;">📖 ESPAÑOL</button>
-            <button onclick="startSubject('historia')" class="btn-choice" style="border-color: #fb923c;">⚔️ HISTORIA</button>
-            <button onclick="startSubject('geografia')" class="btn-choice" style="border-color: #4ade80;">🌍 GEOGRAFÍA</button>
+    <div id="login-screen" class="w-full max-w-md mt-20">
+        <div class="pixel-border p-6">
+            <h1 class="text-yellow-400 text-xs mb-6">NUEVO JUGADOR</h1>
+            <input type="text" id="player-name" placeholder="NOMBRE..." class="w-full p-3 bg-black border-2 border-white text-white text-[10px] mb-6 text-center focus:outline-none">
+            <button onclick="savePlayer()" class="btn-choice">REGISTRARSE</button>
+        </div>
+    </div>
+
+    <div id="menu-screen" class="w-full max-w-md hidden">
+        <div class="flex justify-between items-center mb-6">
+            <div class="text-[8px] text-cyan-400">HOLA, <span id="display-name"></span></div>
+            <button onclick="logout()" class="text-[7px] text-gray-500 underline">CAMBIAR JUGADOR</button>
+        </div>
+        <div class="pixel-border p-6">
+            <h2 class="text-yellow-400 text-[10px] mb-6">ELIGE TU AVENTURA</h2>
+            <button onclick="start('matematicas')" class="btn-choice" style="border-color: #22d3ee;">🧮 MATEMÁTICAS</button>
+            <button onclick="start('ingles')" class="btn-choice" style="border-color: #818cf8;">🇬🇧 INGLÉS (SEC)</button>
+            <button onclick="start('dragonball')" class="btn-choice" style="border-color: #fb923c;">🐉 DRAGON BALL Z</button>
+            <button onclick="start('historia')" class="btn-choice" style="border-color: #f87171;">⚔️ HISTORIA</button>
         </div>
     </div>
 
     <div id="game-screen" class="w-full max-w-md hidden">
         <div class="flex justify-between mb-4 text-[8px]">
-            <button onclick="location.reload()" class="text-gray-400">⬅️ VOLVER</button>
-            <span id="subject-name" class="text-yellow-400"></span>
+            <button onclick="goBack()" class="text-gray-400">⬅️ MENU</button>
+            <span id="subject-title" class="text-yellow-400"></span>
         </div>
         
         <div class="grid grid-cols-2 gap-2 mb-6 text-[8px]">
-            <div class="p-2 border-4 border-gray-700 bg-black">✅ <span id="h">0</span></div>
-            <div class="p-2 border-4 border-gray-700 bg-black text-yellow-400">PISO <span id="floor-num">1</span></div>
+            <div class="p-2 border-4 border-gray-700 bg-black">PUNTOS: <span id="h">0</span></div>
+            <div class="p-2 border-4 border-gray-700 bg-black">PISO: <span id="f-num">1</span></div>
         </div>
 
-        <div class="p-4 pixel-border">
-            <div id="question" class="text-[9px] text-green-300 leading-relaxed"></div>
+        <div class="p-6 pixel-border bg-black/50">
+            <div id="q-text" class="text-[9px] text-green-300 leading-relaxed"></div>
         </div>
 
-        <div id="options"></div>
+        <div id="options-grid"></div>
     </div>
 
     <div id="modal">
-        <div class="pixel-border p-8 w-full max-w-xs" style="border-color: var(--gold)">
+        <div id="modal-box" class="pixel-border p-8 w-full max-w-xs text-center">
             <div id="m-icon" class="text-5xl mb-4"></div>
             <div id="m-title" class="text-sm mb-4"></div>
             <div id="m-desc" class="text-[8px] text-gray-400 mb-8 leading-loose"></div>
-            <button onclick="closeModal()" class="btn-choice" style="background:#fff; color:#000;">CONTINUAR</button>
+            <button onclick="closeModal()" class="btn-choice" style="background:#fff; color:#000;">SIGUIENTE</button>
         </div>
     </div>
 
     <script>
         const database = {
             matematicas: [
-                { q: "¿Cuál es el resultado de 3/4 + 1/8?", a: ["4/12", "7/8", "1/2", "5/8"], c: 1, p: "Convierte 3/4 a 6/8 y suma." },
-                { q: "Si un círculo tiene 10cm de diámetro, ¿su radio es?", a: ["20cm", "5cm", "10cm", "2.5cm"], c: 1, p: "El radio es la mitad del diámetro." },
-                { q: "Resultado de: 5 + 5 x 5", a: ["50", "25", "30", "15"], c: 2, p: "Primero multiplica (5x5=25) y suma 5." }
+                { q: "Resultado de: (12 / 3) + (5 * 2)", a: ["14", "18", "12", "20"], c: 0, p: "4 + 10 = 14." },
+                { q: "Si X + 22 = 50, ¿X vale?", a: ["32", "28", "38", "25"], c: 1, p: "50 - 22 = 28." }
             ],
-            espanol: [
-                { q: "¿Qué tipo de palabra es 'correr'?", a: ["Sustantivo", "Adjetivo", "Verbo", "Adverbio"], c: 2, p: "Indica una acción." },
-                { q: "Parte del cuento donde se resuelve el conflicto:", a: ["Inicio", "Desarrollo", "Desenlace", "Título"], c: 2, p: "Es el final de la historia." },
-                { q: "Palabra que tiene la sílaba tónica en la última sílaba:", a: ["Aguda", "Grave", "Esdrújula", "Sobresdrújula"], c: 0, p: "Ejemplo: Melón, Correr, Sofá." }
+            ingles: [
+                { q: "¿Cómo se dice 'Yo soy un estudiante'?", a: ["I are a student", "I is a student", "I am a student", "I be a student"], c: 2, p: "Con 'I' siempre usamos 'am'." },
+                { q: "Significado de 'Library':", a: ["Librería (venta)", "Biblioteca", "Libreta", "Libro"], c: 1, p: "Ojo: es un falso amigo, significa Biblioteca." },
+                { q: "Pasado del verbo 'GO':", a: ["Goed", "Went", "Gone", "Goes"], c: 1, p: "Es un verbo irregular." }
+            ],
+            dragonball: [
+                { q: "¿Quién mató a Freezer por primera vez en la Tierra?", a: ["Goku", "Vegeta", "Trunks del Futuro", "Gohan"], c: 2, p: "Llegó del futuro y usó su espada." },
+                { q: "¿Cuál es el nombre del planeta de donde viene Piccolo?", a: ["Planeta Vegueta", "Namekusei", "Tierra", "Planeta Kaio"], c: 1, p: "Es el hogar de los Namekianos." },
+                { q: "¿Cómo se llama la técnica más fuerte de Krilin?", a: ["Kame Hame Ha", "Kienzan", "Masenko", "Taiyoken"], c: 1, p: "Es el disco de energía cortante." }
             ],
             historia: [
-                { q: "Civilización que construyó las pirámides del Sol y la Luna:", a: ["Maya", "Mexica", "Teotihuacana", "Olmeca"], c: 2, p: "Se ubicaron en el Estado de México." },
-                { q: "Periodo que inició con la agricultura y el sedentarismo:", a: ["Paleolítico", "Neolítico", "Edad de Oro", "Virreinato"], c: 1, p: "Neo significa nuevo (piedra nueva)." },
-                { q: "¿En qué año se descubrió América?", a: ["1521", "1810", "1492", "1910"], c: 2, p: "Siglo XV, viaje de Cristóbal Colón." }
-            ],
-            geografia: [
-                { q: "Capa de la Tierra donde vivimos:", a: ["Núcleo", "Manto", "Corteza", "Atmósfera"], c: 2, p: "Es la capa más externa y sólida." },
-                { q: "Continente con mayor número de habitantes:", a: ["América", "África", "Asia", "Europa"], c: 2, p: "Países como China e India están ahí." },
-                { q: "Línea imaginaria que divide la Tierra en Norte y Sur:", a: ["Meridiano", "Ecuador", "Trópico", "Polo"], c: 1, p: "Es el cinturón de la Tierra." }
+                { q: "Primer presidente de México:", a: ["Benito Juárez", "Guadalupe Victoria", "Hidalgo", "Madero"], c: 1, p: "Gobernó de 1824 a 1829." }
             ]
         };
 
-        let currentSubject = '';
+        let player = localStorage.getItem('player') || "";
+        let currentS = "";
         let f = 0;
         let hits = 0;
 
-        function startSubject(subject) {
-            currentSubject = subject;
-            f = 0;
-            hits = 0;
+        // --- SISTEMA DE JUGADOR ---
+        function savePlayer() {
+            const name = document.getElementById('player-name').value;
+            if(name) {
+                localStorage.setItem('player', name);
+                location.reload();
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('player');
+            location.reload();
+        }
+
+        // --- CONTROL DE JUEGO ---
+        function start(subject) {
+            currentS = subject;
+            f = 0; hits = 0;
             document.getElementById('menu-screen').classList.add('hidden');
             document.getElementById('game-screen').classList.remove('hidden');
-            document.getElementById('subject-name').innerText = subject.toUpperCase();
+            document.getElementById('subject-title').innerText = subject.toUpperCase();
             render();
         }
 
         function render() {
-            const questions = database[currentSubject];
-            if (f >= questions.length) {
-                showM("🏆", "¡MISIÓN CUMPLIDA!", "Completaste " + currentSubject);
-                window.shouldReset = true;
+            const qs = database[currentS];
+            if (f >= qs.length) {
+                showM("👑", "LEVEL CLEARED", "¡Increíble " + player + "! Dominas esta materia.");
+                window.shouldGoMenu = true;
                 return;
             }
 
-            document.getElementById('floor-num').innerText = f + 1;
+            document.getElementById('f-num').innerText = f + 1;
             document.getElementById('h').innerText = hits;
-
-            const qData = questions[f];
-            document.getElementById('question').innerText = qData.q;
+            const qd = qs[f];
+            document.getElementById('q-text').innerText = qd.q;
             
-            const grid = document.getElementById('options');
+            const grid = document.getElementById('options-grid');
             grid.innerHTML = '';
-            qData.a.forEach((txt, i) => {
+            qd.a.forEach((txt, i) => {
                 const b = document.createElement('button');
                 b.className = "btn-answer";
                 b.innerText = txt;
-                b.onclick = () => {
-                    if (i === qData.c) {
-                        hits++; f++;
-                        showM("⚔️", "¡CORRECTO!", "¡Buen trabajo!");
-                    } else {
-                        showM("💀", "ERROR", "PISTA: " + qData.p);
-                    }
-                };
+                b.onclick = () => check(i);
                 grid.appendChild(b);
             });
+        }
+
+        function check(i) {
+            const qd = database[currentS][f];
+            const buttons = document.querySelectorAll('.btn-answer');
+            buttons.forEach(btn => btn.disabled = true);
+
+            if (i === qd.c) {
+                document.body.classList.add('flash-correct');
+                hits++; f++;
+                showM("💎", "¡GENIAL!", "Respuesta correcta.");
+            } else {
+                document.body.classList.add('flash-wrong');
+                showM("💥", "¡FALLO!", "PISTA: " + qd.p);
+            }
         }
 
         function showM(i, t, d) {
@@ -133,13 +210,26 @@
         }
 
         function closeModal() {
+            document.body.classList.remove('flash-correct', 'flash-wrong');
             document.getElementById('modal').style.display = 'none';
-            if (window.shouldReset) {
-                window.shouldReset = false;
-                location.reload();
+            if(window.shouldGoMenu) {
+                window.shouldGoMenu = false;
+                goBack();
             } else {
                 render();
             }
+        }
+
+        function goBack() {
+            document.getElementById('game-screen').classList.add('hidden');
+            document.getElementById('menu-screen').classList.remove('hidden');
+        }
+
+        // --- INICIO ---
+        if(player) {
+            document.getElementById('login-screen').classList.add('hidden');
+            document.getElementById('menu-screen').classList.remove('hidden');
+            document.getElementById('display-name').innerText = player.toUpperCase();
         }
     </script>
 </body>
