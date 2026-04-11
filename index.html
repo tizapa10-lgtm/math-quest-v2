@@ -91,9 +91,10 @@ input {
 <!-- LOGIN -->
 <div id="login-screen" class="pixel-border">
     <h1 style="color: #facc15; font-size: 12px; margin-bottom: 30px;">NUEVO JUGADOR</h1>
-    <input type="text" id="player-name" placeholder="NOMBRE..." style="text-align: center;">
+    <input type="text" id="player-name" placeholder="NOMBRE..." style="text-align: center;" maxlength="15">
     <br>
     <button class="btn" onclick="savePlayer()">REGISTRARSE</button>
+    <p id="login-error" style="color: #ef4444; font-size: 8px; margin-top: 10px;"></p>
 </div>
 
 <!-- MENU -->
@@ -1232,23 +1233,113 @@ pokemon: [
 ]
 };
 
-let player = localStorage.getItem('player') || "";
+let player = "";
 let currentS = "";
 let f = 0;
 let hits = 0;
-let attemptsOnCurrent = 0; // Contador de intentos por pregunta
+let attemptsOnCurrent = 0;
 
+// === INICIALIZACIÓN CORREGIDA ===
+function init() {
+    try {
+        player = localStorage.getItem('player') || "";
+        console.log("Jugador cargado:", player);
+        
+        if(player && player.trim() !== "") {
+            document.getElementById('login-screen').classList.add('hidden');
+            document.getElementById('menu-screen').classList.remove('hidden');
+            document.getElementById('display-name').innerText = player.toUpperCase();
+            initializeScores();
+        } else {
+            document.getElementById('login-screen').classList.remove('hidden');
+            document.getElementById('menu-screen').classList.add('hidden');
+        }
+    } catch(e) {
+        console.error("Error en inicialización:", e);
+        document.getElementById('login-error').innerText = "Error: Activa localStorage en tu navegador";
+    }
+}
+
+// === REGISTRO DE JUGADOR CORREGIDO ===
 function savePlayer() {
-    const name = document.getElementById('player-name').value.trim();
-    if(name) {
+    const nameInput = document.getElementById('player-name');
+    const errorDisplay = document.getElementById('login-error');
+    const name = nameInput.value.trim();
+    
+    // Validación
+    if(!name || name.length < 2) {
+        errorDisplay.innerText = "⚠️ Ingresa un nombre (mínimo 2 letras)";
+        nameInput.focus();
+        return;
+    }
+    
+    if(name.length > 15) {
+        errorDisplay.innerText = "⚠️ Máximo 15 caracteres";
+        return;
+    }
+    
+    try {
+        // Guardar en localStorage
         localStorage.setItem('player', name);
-        location.reload();
+        player = name;
+        
+        // Confirmación visual
+        errorDisplay.style.color = "#22c55e";
+        errorDisplay.innerText = "✓ ¡Registrado! Cargando...";
+        
+        // Inicializar scores si no existen
+        initializeScores();
+        
+        // Cambiar pantallas manualmente (más confiable que reload)
+        setTimeout(() => {
+            document.getElementById('login-screen').classList.add('hidden');
+            document.getElementById('menu-screen').classList.remove('hidden');
+            document.getElementById('display-name').innerText = player.toUpperCase();
+            errorDisplay.style.color = "#ef4444";
+            errorDisplay.innerText = "";
+            nameInput.value = "";
+        }, 500);
+        
+    } catch(e) {
+        console.error("Error guardando jugador:", e);
+        errorDisplay.innerText = "⚠️ Error: No se pudo guardar. Verifica tu navegador.";
+    }
+}
+
+// === INICIALIZAR SCORES PARA LAS 7 MATERIAS ===
+function initializeScores() {
+    try {
+        const defaultScores = {
+            matematicas: { points: 0, correct: 0, incorrect: 0 },
+            espanol: { points: 0, correct: 0, incorrect: 0 },
+            historia: { points: 0, correct: 0, incorrect: 0 },
+            geografia: { points: 0, correct: 0, incorrect: 0 },
+            ingles: { points: 0, correct: 0, incorrect: 0 },
+            dragonball: { points: 0, correct: 0, incorrect: 0 },
+            pokemon: { points: 0, correct: 0, incorrect: 0 }
+        };
+        
+        const saved = localStorage.getItem(`scores_${player}`);
+        if(!saved) {
+            localStorage.setItem(`scores_${player}`, JSON.stringify(defaultScores));
+        }
+    } catch(e) {
+        console.error("Error inicializando scores:", e);
     }
 }
 
 function logout() {
-    localStorage.removeItem('player');
-    location.reload();
+    try {
+        localStorage.removeItem('player');
+        player = "";
+        location.reload();
+    } catch(e) {
+        console.error("Error en logout:", e);
+        // Fallback manual
+        document.getElementById('menu-screen').classList.add('hidden');
+        document.getElementById('login-screen').classList.remove('hidden');
+        document.getElementById('player-name').value = "";
+    }
 }
 
 function start(subject) {
@@ -1291,15 +1382,12 @@ function render() {
 function check(selectedIndex, buttonElement) {
     const qd = database[currentS][f];
     const buttons = document.querySelectorAll('.option-btn');
-    
-    // Deshabilitar todos los botones temporalmente
     buttons.forEach(btn => btn.disabled = true);
     
     if (selectedIndex === qd.c) {
-        // RESPUESTA CORRECTA
         buttonElement.classList.add('correct');
         hits++;
-        f++; // Avanzar a la siguiente pregunta
+        f++;
         attemptsOnCurrent = 0;
         showM("💎", "¡CORRECTO!", "+10 puntos - ¡Siguiente pregunta!");
         setTimeout(() => {
@@ -1307,21 +1395,15 @@ function check(selectedIndex, buttonElement) {
             render();
         }, 1500);
     } else {
-        // RESPUESTA INCORRECTA - NO AVANZAR
         buttonElement.classList.add('wrong');
         attemptsOnCurrent++;
-        
-        // Mostrar mensaje de error pero NO avanzar
         let hintMessage = `💡 PISTA: ${qd.p}`;
         if (attemptsOnCurrent >= 2) {
             hintMessage += "\n\n¡Tómate tu tiempo y piensa bien!";
         }
-        
         showM("❌", "INTENTA DE NUEVO", hintMessage);
-        
         setTimeout(() => {
             closeModal();
-            // Reactivar botones para que pueda intentar de nuevo
             buttons.forEach(btn => {
                 btn.disabled = false;
                 btn.classList.remove('wrong');
@@ -1332,12 +1414,16 @@ function check(selectedIndex, buttonElement) {
 }
 
 function saveScore(correct, incorrect) {
-    const scores = getScores();
-    if(scores[currentS]) {
-        scores[currentS].points += (correct * 10);
-        scores[currentS].correct += correct;
-        scores[currentS].incorrect += incorrect;
-        localStorage.setItem(`scores_${player}`, JSON.stringify(scores));
+    try {
+        const scores = getScores();
+        if(scores[currentS]) {
+            scores[currentS].points += (correct * 10);
+            scores[currentS].correct += correct;
+            scores[currentS].incorrect += incorrect;
+            localStorage.setItem(`scores_${player}`, JSON.stringify(scores));
+        }
+    } catch(e) {
+        console.error("Error guardando score:", e);
     }
 }
 
@@ -1360,10 +1446,20 @@ function goBack() {
 function showScoreboard() {
     const scores = getScores();
     let html = '';
+    const subjectNames = {
+        matematicas: "🧮 MATEMÁTICAS",
+        espanol: "📚 ESPAÑOL",
+        historia: "⚔️ HISTORIA",
+        geografia: "🌍 GEOGRAFÍA",
+        ingles: "🇬 INGLÉS",
+        dragonball: "🐉 DRAGON BALL Z",
+        pokemon: "⚡ POKEMON"
+    };
     Object.keys(scores).forEach(subj => {
         const s = scores[subj];
+        const name = subjectNames[subj] || subj.toUpperCase();
         html += `<div style="border: 2px solid #475569; padding: 10px; margin: 10px 0; font-size: 8px; text-align: left;">
-            <strong style="color: #facc15;">${subj.toUpperCase()}</strong><br>
+            <strong style="color: #facc15;">${name}</strong><br>
             Puntos: ${s.points} | Correctas: ${s.correct} | Errores: ${s.incorrect}
             </div>`;
     });
@@ -1376,29 +1472,38 @@ function closeScoreboard() {
 }
 
 function getScores() {
-    const saved = localStorage.getItem(`scores_${player}`);
-    const defaultScores = {
-        matematicas: { points: 0, correct: 0, incorrect: 0 },
-        espanol: { points: 0, correct: 0, incorrect: 0 },
-        historia: { points: 0, correct: 0, incorrect: 0 },
-        geografia: { points: 0, correct: 0, incorrect: 0 },
-        ingles: { points: 0, correct: 0, incorrect: 0 },
-        dragonball: { points: 0, correct: 0, incorrect: 0 },
-        pokemon: { points: 0, correct: 0, incorrect: 0 }
-    };
-    if (saved) {
-        const parsed = JSON.parse(saved);
-        return { ...defaultScores, ...parsed };
+    try {
+        const defaultScores = {
+            matematicas: { points: 0, correct: 0, incorrect: 0 },
+            espanol: { points: 0, correct: 0, incorrect: 0 },
+            historia: { points: 0, correct: 0, incorrect: 0 },
+            geografia: { points: 0, correct: 0, incorrect: 0 },
+            ingles: { points: 0, correct: 0, incorrect: 0 },
+            dragonball: { points: 0, correct: 0, incorrect: 0 },
+            pokemon: { points: 0, correct: 0, incorrect: 0 }
+        };
+        const saved = localStorage.getItem(`scores_${player}`);
+        if (saved) {
+            const parsed = JSON.parse(saved);
+            return { ...defaultScores, ...parsed };
+        }
+        return defaultScores;
+    } catch(e) {
+        console.error("Error obteniendo scores:", e);
+        return {
+            matematicas: { points: 0, correct: 0, incorrect: 0 },
+            espanol: { points: 0, correct: 0, incorrect: 0 },
+            historia: { points: 0, correct: 0, incorrect: 0 },
+            geografia: { points: 0, correct: 0, incorrect: 0 },
+            ingles: { points: 0, correct: 0, incorrect: 0 },
+            dragonball: { points: 0, correct: 0, incorrect: 0 },
+            pokemon: { points: 0, correct: 0, incorrect: 0 }
+        };
     }
-    return defaultScores;
 }
 
-// Inicialización
-if(player) {
-    document.getElementById('login-screen').classList.add('hidden');
-    document.getElementById('menu-screen').classList.remove('hidden');
-    document.getElementById('display-name').innerText = player.toUpperCase();
-}
+// === INICIAR AL CARGAR LA PÁGINA ===
+window.onload = init;
 </script>
 </body>
 </html>
