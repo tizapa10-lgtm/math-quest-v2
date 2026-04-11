@@ -66,6 +66,8 @@ input {
     text-align: left;
 }
 .option-btn:hover { background: #334155; }
+.option-btn.correct { background: #22c55e !important; }
+.option-btn.wrong { background: #ef4444 !important; }
 #modal {
     position: fixed;
     top: 0; left: 0; right: 0; bottom: 0;
@@ -105,7 +107,6 @@ input {
     </div>
     <div class="pixel-border">
         <h2 style="color: #facc15; font-size: 10px; margin-bottom: 20px;">ELIGE TU AVENTURA</h2>
-        <!-- BOTONES DE MATERIAS -->
         <button class="btn" onclick="start('matematicas')" style="display: block; width: 80%; margin: 10px auto;">🧮 MATEMÁTICAS</button>
         <button class="btn" onclick="start('espanol')" style="display: block; width: 80%; margin: 10px auto;">📚 ESPAÑOL</button>
         <button class="btn" onclick="start('historia')" style="display: block; width: 80%; margin: 10px auto;">⚔️ HISTORIA</button>
@@ -152,43 +153,42 @@ input {
 </div>
 
 <script>
-// --- BASE DE DATOS DE PREGUNTAS ---
-// Puedes agregar más preguntas dentro de cada array []
+// --- BASE DE DATOS DE PREGUNTAS (3 por materia con pistas que NO revelan la respuesta) ---
 const database = {
     matematicas: [
-        { q: "Si 3 cuadernos cuestan $45, ¿cuánto pagarás por 12?", a: ["$135", "$180", "$150", "$200"], c: 1, p: "12 es el cuádruple de 3 (45 x 4)." },
-        { q: "Resultado de (10 + 5) * 2 - 10:", a: ["20", "15", "25", "30"], c: 0, p: "Primero el paréntesis (15), luego x2 (30) y resta 10." },
-        { q: "¿Qué número sigue: 2, 6, 18, 54, __?", a: ["108", "162", "150", "200"], c: 1, p: "Cada número se multiplica por 3." }
+        { q: "Si 3 cuadernos cuestan $45, ¿cuánto pagarás por 12?", a: ["$135", "$180", "$150", "$200"], c: 1, p: "Piensa en cuántas veces más es 12 que 3." },
+        { q: "Resultado de (10 + 5) * 2 - 10:", a: ["20", "15", "25", "30"], c: 0, p: "Recuerda resolver primero lo que está entre paréntesis." },
+        { q: "¿Qué número sigue: 2, 6, 18, 54, __?", a: ["108", "162", "150", "200"], c: 1, p: "Cada número se multiplica por el mismo valor." }
     ],
     espanol: [
-        { q: "Las palabras que llevan el acento en la última sílaba se llaman:", a: ["Graves", "Esdrújulas", "Agudas", "Sobresdrújulas"], c: 2, p: "Ejemplo: Corazón, Café, Pared." },
-        { q: "¿Cuál de estas palabras es esdrújula?", a: ["Cámara", "Balón", "Silla", "Cantar"], c: 0, p: "Las esdrújulas siempre se acentúan en la antepenúltima sílaba." },
-        { q: "Palabra que indica una acción (Ej: Saltar):", a: ["Sustantivo", "Verbo", "Adjetivo", "Preposición"], c: 1, p: "Los verbos son acciones." }
+        { q: "Las palabras que llevan el acento en la última sílaba se llaman:", a: ["Graves", "Esdrújulas", "Agudas", "Sobresdrújulas"], c: 2, p: "Su nombre indica que están en la punta final." },
+        { q: "¿Cuál de estas palabras es esdrújula?", a: ["Cámara", "Balón", "Silla", "Cantar"], c: 0, p: "Las esdrújulas siempre llevan tilde en la antepenúltima." },
+        { q: "Palabra que indica una acción (Ej: Saltar):", a: ["Sustantivo", "Verbo", "Adjetivo", "Preposición"], c: 1, p: "Es la parte de la oración que muestra lo que se hace." }
     ],
     historia: [
-        { q: "Primer presidente de México:", a: ["Juárez", "Guadalupe Victoria", "Hidalgo", "Madero"], c: 1, p: "Guadalupe Victoria (1824-1829)." },
-        { q: "¿En qué año inició la Revolución Mexicana?", a: ["1810", "1910", "1917", "1821"], c: 1, p: "El 20 de noviembre de 1910." },
-        { q: "Civilización que construyó Chichén Itzá:", a: ["Azteca", "Inca", "Maya", "Olmeca"], c: 2, p: "Los Mayas en la península de Yucatán." }
+        { q: "Primer presidente de México:", a: ["Juárez", "Guadalupe Victoria", "Hidalgo", "Madero"], c: 1, p: "Su apellido tiene dos partes y fue después de la independencia." },
+        { q: "¿En qué año inició la Revolución Mexicana?", a: ["1810", "1910", "1917", "1821"], c: 1, p: "Fue en el siglo XX, exactamente 100 años después de la Independencia." },
+        { q: "Civilización que construyó Chichén Itzá:", a: ["Azteca", "Inca", "Maya", "Olmeca"], c: 2, p: "Esta cultura se desarrolló en la península de Yucatán." }
     ],
     geografia: [
-        { q: "¿Cuál es el país más grande del mundo?", a: ["China", "USA", "Rusia", "Canadá"], c: 2, p: "Rusia tiene la mayor superficie territorial." },
-        { q: "¿Cuál es el río más largo del mundo?", a: ["Nilo", "Amazonas", "Misisipi", "Yangtsé"], c: 1, p: "El Amazonas en Sudamérica." },
-        { q: "Capital de Francia:", a: ["Londres", "Berlín", "Madrid", "París"], c: 3, p: "París es la capital de Francia." }
+        { q: "¿Cuál es el país más grande del mundo?", a: ["China", "USA", "Rusia", "Canadá"], c: 2, p: "Está ubicado entre Europa y Asia." },
+        { q: "¿Cuál es el río más largo del mundo?", a: ["Nilo", "Amazonas", "Misisipi", "Yangtsé"], c: 1, p: "Se encuentra en el continente sudamericano." },
+        { q: "Capital de Francia:", a: ["Londres", "Berlín", "Madrid", "París"], c: 3, p: "Es conocida como la ciudad del amor y tiene una torre famosa." }
     ],
     ingles: [
-        { q: "Choose the correct: She ___ my best friend.", a: ["am", "is", "are", "be"], c: 1, p: "Con 'She, He, It' usamos 'is'." },
-        { q: "Meaning of 'They':", a: ["Nosotros", "Ustedes", "Ellos/Ellas", "Él"], c: 2, p: "They se refiere a otras personas." },
-        { q: "Translate: 'Ventana'", a: ["Door", "Wall", "Window", "Floor"], c: 2, p: "Window es ventana." }
+        { q: "Choose the correct: She ___ my best friend.", a: ["am", "is", "are", "be"], c: 1, p: "Con She, He, It se usa la tercera persona del verbo to be." },
+        { q: "Meaning of 'They':", a: ["Nosotros", "Ustedes", "Ellos/Ellas", "Él"], c: 2, p: "Se refiere a otras personas en plural." },
+        { q: "Translate: 'Ventana'", a: ["Door", "Wall", "Window", "Floor"], c: 2, p: "Empieza con W y es por donde entra la luz." }
     ],
     dragonball: [
-        { q: "¿Quién mató a Freezer?", a: ["Goku", "Vegeta", "Trunks", "Gohan"], c: 2, p: "Trunks del futuro." },
-        { q: "Planeta de Piccolo:", a: ["Vegueta", "Namekusei", "Tierra", "Kaio"], c: 1, p: "Namekusei." },
-        { q: "¿Cuál es el nivel de poder de Goku al inicio?", a: ["10", "100", "1000", "5"], c: 0, p: "Tenía un nivel de poder bajo al inicio de Z." }
+        { q: "¿Quién mató a Freezer?", a: ["Goku", "Vegeta", "Trunks", "Gohan"], c: 2, p: "Fue un guerrero que vino del futuro con cabello morado." },
+        { q: "Planeta de Piccolo:", a: ["Vegueta", "Namekusei", "Tierra", "Kaio"], c: 1, p: "Es el planeta de los seres verdes con antenas." },
+        { q: "¿Cuál es el nivel de poder de Goku al inicio de Z?", a: ["10", "100", "1000", "5"], c: 0, p: "Era un número muy bajo comparado con los Saiyajins." }
     ],
     pokemon: [
-        { q: "¿Quién es el protagonista de la serie?", a: ["Gary", "Ash Ketchum", "Brock", "Misty"], c: 1, p: "Ash Ketchum de Pueblo Paleta." },
-        { q: "¿Cuál es el Pokémon inicial de tipo fuego?", a: ["Squirtle", "Bulbasaur", "Charmander", "Pikachu"], c: 2, p: "Charmander evoluciona a Charizard." },
-        { q: "¿Qué tipo de Pokémon es Pikachu?", a: ["Fuego", "Agua", "Eléctrico", "Psíquico"], c: 2, p: "Es tipo Eléctrico." }
+        { q: "¿Quién es el protagonista de la serie?", a: ["Gary", "Ash Ketchum", "Brock", "Misty"], c: 1, p: "Su nombre empieza con A y es de Pueblo Paleta." },
+        { q: "¿Cuál es el Pokémon inicial de tipo fuego?", a: ["Squirtle", "Bulbasaur", "Charmander", "Pikachu"], c: 2, p: "Es un pequeño lagarto con llama en la cola." },
+        { q: "¿Qué tipo de Pokémon es Pikachu?", a: ["Fuego", "Agua", "Eléctrico", "Psíquico"], c: 2, p: "Usa ataques de rayo y electricidad." }
     ]
 };
 
@@ -196,6 +196,7 @@ let player = localStorage.getItem('player') || "";
 let currentS = "";
 let f = 0;
 let hits = 0;
+let attemptsOnCurrent = 0; // Contador de intentos por pregunta
 
 function savePlayer() {
     const name = document.getElementById('player-name').value.trim();
@@ -214,6 +215,7 @@ function start(subject) {
     currentS = subject;
     f = 0; 
     hits = 0;
+    attemptsOnCurrent = 0;
     document.getElementById('menu-screen').classList.add('hidden');
     document.getElementById('game-screen').classList.remove('hidden');
     render();
@@ -241,29 +243,49 @@ function render() {
         const b = document.createElement('button');
         b.className = 'option-btn';
         b.innerText = txt;
-        b.onclick = () => check(i);
+        b.onclick = () => check(i, b);
         grid.appendChild(b);
     });
 }
 
-function check(i) {
+function check(selectedIndex, buttonElement) {
     const qd = database[currentS][f];
     const buttons = document.querySelectorAll('.option-btn');
+    
+    // Deshabilitar todos los botones temporalmente
     buttons.forEach(btn => btn.disabled = true);
-    if (i === qd.c) {
+    
+    if (selectedIndex === qd.c) {
+        // RESPUESTA CORRECTA
+        buttonElement.classList.add('correct');
         hits++;
-        f++;
-        showM("💎", "¡CORRECTO!", "+10 puntos");
+        f++; // Avanzar a la siguiente pregunta
+        attemptsOnCurrent = 0;
+        showM("💎", "¡CORRECTO!", "+10 puntos - ¡Siguiente pregunta!");
         setTimeout(() => {
             closeModal();
             render();
         }, 1500);
     } else {
-        f++;
-        showM("💥", "INCORRECTO", `PISTA: ${qd.p}`);
+        // RESPUESTA INCORRECTA - NO AVANZAR
+        buttonElement.classList.add('wrong');
+        attemptsOnCurrent++;
+        
+        // Mostrar mensaje de error pero NO avanzar
+        let hintMessage = `💡 PISTA: ${qd.p}`;
+        if (attemptsOnCurrent >= 2) {
+            hintMessage += "\n\n¡Tómate tu tiempo y piensa bien!";
+        }
+        
+        showM("❌", "INTENTA DE NUEVO", hintMessage);
+        
         setTimeout(() => {
             closeModal();
-            render();
+            // Reactivar botones para que pueda intentar de nuevo
+            buttons.forEach(btn => {
+                btn.disabled = false;
+                btn.classList.remove('wrong');
+            });
         }, 2000);
     }
     document.getElementById('h').innerText = hits;
@@ -315,7 +337,6 @@ function closeScoreboard() {
 
 function getScores() {
     const saved = localStorage.getItem(`scores_${player}`);
-    // Inicializa todas las materias posibles
     const defaultScores = {
         matematicas: { points: 0, correct: 0, incorrect: 0 },
         espanol: { points: 0, correct: 0, incorrect: 0 },
@@ -327,7 +348,6 @@ function getScores() {
     };
     if (saved) {
         const parsed = JSON.parse(saved);
-        // Fusionar con defaults por si se agrega una materia nueva
         return { ...defaultScores, ...parsed };
     }
     return defaultScores;
